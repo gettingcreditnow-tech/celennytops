@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { useCart } from "@/context/CartContext";
 import { computeSubtotalCents, computeTotalCents, formatUsd } from "@/lib/pricing";
@@ -11,6 +11,7 @@ import { useRouter } from "../../../../i18n/routing";
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
+  const locale = useLocale();
   const { state, clear } = useCart();
   const router = useRouter();
   const [zones, setZones] = useState<ShippingZone[]>([]);
@@ -71,7 +72,7 @@ export default function CheckoutPage() {
                     city: form.city,
                     countryCode: form.countryCode,
                   },
-                  locale: "es",
+                  locale,
                 }),
               });
               const data = await res.json();

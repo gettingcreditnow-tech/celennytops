@@ -29,8 +29,12 @@ export default function ProductPage({
 
   useEffect(() => {
     if (!id) return;
+    // A 404 body is still truthy JSON, so it must be rejected before it reaches
+    // state - otherwise it passes the `!product` guard and VariantSelector
+    // crashes on the missing `variants` array.
     fetch(`/api/products/${id}`)
-      .then((r) => r.json())
+      .then(async (r) => (r.ok ? ((await r.json()) as ProductWithVariants) : null))
+      .catch(() => null)
       .then(setProduct);
   }, [id]);
 
