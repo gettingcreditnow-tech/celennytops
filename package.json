@@ -13,12 +13,12 @@
     "react": "^18",
     "react-dom": "^18",
     "next": "^14",
-    "@supabase/supabase-js": "latest",
-    "@supabase/ssr": "latest",
-    "next-intl": "latest",
-    "@paypal/react-paypal-js": "latest",
-    "resend": "latest",
-    "zod": "latest"
+    "@supabase/supabase-js": "^2.114.0",
+    "@supabase/ssr": "^0.12.5",
+    "next-intl": "^4.14.2",
+    "@paypal/react-paypal-js": "^10.4.0",
+    "resend": "^6.25.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "typescript": "^5",
@@ -30,10 +30,10 @@
     "autoprefixer": "^10.4",
     "eslint": "^8",
     "eslint-config-next": "^14",
-    "vitest": "latest",
-    "@vitejs/plugin-react": "latest",
-    "jsdom": "latest",
-    "@testing-library/react": "latest",
-    "@testing-library/jest-dom": "latest"
+    "vitest": "^4.1.11",
+    "@vitejs/plugin-react": "^6.1.1",
+    "jsdom": "^30.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/jest-dom": "^7.0.1"
   }
 }
