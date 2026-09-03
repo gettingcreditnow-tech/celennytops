@@ -34,8 +34,11 @@ as $$
   );
 $$;
 
-revoke execute on function public.is_admin() from public;
-grant execute on function public.is_admin() to authenticated;
+-- Every role that can hit a table carrying an is_admin() policy must be able to
+-- execute it: Postgres ORs the permissive policies together and may evaluate
+-- the admin one even for an anonymous shopper reading the catalog. The function
+-- only reports whether the *caller's own* JWT is an admin, so this leaks nothing.
+grant execute on function public.is_admin() to anon, authenticated, service_role;
 
 drop policy if exists "authenticated full access products" on products;
 create policy "admin full access products" on products
