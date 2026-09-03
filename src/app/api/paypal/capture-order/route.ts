@@ -34,6 +34,9 @@ export async function POST(req: NextRequest) {
   if (itemsError || !items) {
     return NextResponse.json({ error: "order_not_found" }, { status: 404 });
   }
+  if (items.length === 0) {
+    return NextResponse.json({ error: "order_not_found" }, { status: 404 });
+  }
 
   const capture = await capturePayPalOrder(paypalOrderId);
   if (capture?.status !== "COMPLETED") {
@@ -48,12 +51,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "amount_mismatch" }, { status: 409 });
   }
 
-  const { error: updateError } = await supabase
+  const { data: updatedOrder, error: updateError } = await supabase
     .from("orders")
     .update({ status: "paid" })
-    .eq("id", order.id);
+    .eq("id", order.id)
+    .eq("status", "pending")
+    .select()
+    .maybeSingle();
   if (updateError) {
     return NextResponse.json({ error: "order_update_failed" }, { status: 500 });
+  }
+  if (!updatedOrder) {
+    // Another concurrent request already flipped this order to paid first.
+    // Payment was captured successfully either way, so this is a success from
+    // the client's perspective - just don't decrement stock or send emails again.
+    return NextResponse.json({ orderId: order.id });
   }
 
   for (const item of items) {

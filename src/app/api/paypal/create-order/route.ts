@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "invalid_items" }, { status: 400 });
     }
   }
-  if (!customer?.countryCode || !customer?.name || !customer?.email) {
+  if (!customer?.countryCode || !customer?.name || !customer?.email || !customer?.address || !customer?.city) {
     return NextResponse.json({ error: "invalid_customer" }, { status: 400 });
   }
 
