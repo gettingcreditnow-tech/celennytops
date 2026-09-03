@@ -6,6 +6,9 @@ import type { OrderRow } from "./types";
 // synchronously when RESEND_API_KEY is unset, which would otherwise crash
 // this whole module on import - including the pure `buildOrderConfirmationEmail`
 // helper - in any environment (e.g. tests, local dev) without the key configured.
+// Must be a domain verified in the Resend account, or every send is rejected.
+const FROM_ADDRESS = "Celenny tops <orders@celennytops.com>";
+
 let resendClient: Resend | null = null;
 function getResendClient(): Resend {
   if (!resendClient) {
@@ -36,14 +39,52 @@ export function buildOrderConfirmationEmail(order: OrderConfirmationInput) {
 
 export async function sendOrderConfirmationEmail(order: OrderConfirmationInput): Promise<void> {
   const email = buildOrderConfirmationEmail(order);
-  await getResendClient().emails.send({ from: "Celenny tops <orders@celennytops.com>", ...email });
+  await getResendClient().emails.send({ from: FROM_ADDRESS, ...email });
 }
 
 export async function sendAdminNewOrderEmail(order: AdminNewOrderInput): Promise<void> {
   await getResendClient().emails.send({
-    from: "Celenny tops <orders@celennytops.com>",
+    from: FROM_ADDRESS,
     to: process.env.ORDER_NOTIFICATION_EMAIL!,
     subject: `Nuevo pedido de ${order.customer_name}`,
     html: `<p>Pedido ${order.id} por $${formatUsd(order.total_cents)} USD.</p>`,
+  });
+}
+
+export type PaymentIssueInput = {
+  orderId: OrderRow["id"];
+  paypalOrderId: string;
+  /** Why the capture was not accepted. */
+  reason: "amount_mismatch" | "payment_not_completed";
+  /** What the order says it should cost, in cents. */
+  expectedCents: OrderRow["total_cents"];
+  /** What PayPal reported capturing, as the raw PayPal amount string. */
+  capturedValue: string | null;
+};
+
+export function buildPaymentIssueEmail(issue: PaymentIssueInput) {
+  return {
+    subject: `REVISAR pago del pedido ${issue.orderId} (${issue.reason})`,
+    html:
+      `<p>El pedido <strong>${issue.orderId}</strong> sigue en <em>pending</em> ` +
+      `porque su cobro en PayPal no se pudo aceptar (${issue.reason}).</p>` +
+      `<p>Pedido PayPal: ${issue.paypalOrderId}<br />` +
+      `Esperado: $${formatUsd(issue.expectedCents)} USD<br />` +
+      `Cobrado: ${issue.capturedValue === null ? "ninguno" : `$${issue.capturedValue} USD`}</p>` +
+      `<p>Revisa este pago manualmente en PayPal antes de enviar nada.</p>`,
+  };
+}
+
+/**
+ * Alerts the shop inbox when money may have moved but the order could not be
+ * marked paid. Without this the customer sees an error and nobody else ever
+ * learns the order needs manual review.
+ */
+export async function sendAdminPaymentIssueEmail(issue: PaymentIssueInput): Promise<void> {
+  const email = buildPaymentIssueEmail(issue);
+  await getResendClient().emails.send({
+    from: FROM_ADDRESS,
+    to: process.env.ORDER_NOTIFICATION_EMAIL!,
+    ...email,
   });
 }

@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { capturePayPalOrder } from "@/lib/paypal";
-import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from "@/lib/email";
+import {
+  sendOrderConfirmationEmail,
+  sendAdminNewOrderEmail,
+  sendAdminPaymentIssueEmail,
+  type PaymentIssueInput,
+} from "@/lib/email";
+import { formatUsd } from "@/lib/pricing";
 import type { OrderItemRow, OrderRow } from "@/lib/types";
+
+/**
+ * A capture we refused to accept means the customer got an error page and the
+ * order stays `pending` forever - so it has to reach a human. Logged always,
+ * emailed best-effort.
+ */
+async function reportPaymentIssue(issue: PaymentIssueInput): Promise<void> {
+  console.error(
+    `PayPal capture rejected (${issue.reason}) for order ${issue.orderId} ` +
+      `[paypal ${issue.paypalOrderId}]: expected $${formatUsd(issue.expectedCents)} USD, ` +
+      `captured ${issue.capturedValue === null ? "none" : `$${issue.capturedValue} USD`}`
+  );
+  try {
+    await sendAdminPaymentIssueEmail(issue);
+  } catch (err) {
+    console.error(`Payment issue alert email failed for order ${issue.orderId}:`, err);
+  }
+}
 
 export async function POST(req: NextRequest) {
   const { paypalOrderId } = await req.json();
@@ -40,15 +64,31 @@ export async function POST(req: NextRequest) {
   }
 
   const capture = await capturePayPalOrder(paypalOrderId);
+  const capturedValue: string | null =
+    capture?.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value ?? null;
+
   if (capture?.status !== "COMPLETED") {
+    await reportPaymentIssue({
+      orderId: order.id,
+      paypalOrderId,
+      reason: "payment_not_completed",
+      expectedCents: order.total_cents,
+      capturedValue,
+    });
     return NextResponse.json({ error: "payment_not_completed" }, { status: 400 });
   }
 
-  const capturedValue = capture.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value;
-  const expectedValue = (order.total_cents / 100).toFixed(2);
+  const expectedValue = formatUsd(order.total_cents);
   if (capturedValue !== expectedValue) {
     // Payment captured but doesn't match what we authorized at create-order time.
     // Do not mark paid or fulfill; needs manual review.
+    await reportPaymentIssue({
+      orderId: order.id,
+      paypalOrderId,
+      reason: "amount_mismatch",
+      expectedCents: order.total_cents,
+      capturedValue,
+    });
     return NextResponse.json({ error: "amount_mismatch" }, { status: 409 });
   }
 
