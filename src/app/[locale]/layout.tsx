@@ -1,6 +1,8 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { routing } from "../../../i18n/routing";
+import { SiteHeader } from "../../components/storefront/SiteHeader";
+import { SiteFooter } from "../../components/storefront/SiteFooter";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -20,7 +22,9 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <body>
         <NextIntlClientProvider messages={messages}>
+          <SiteHeader />
           {children}
+          <SiteFooter />
         </NextIntlClientProvider>
       </body>
     </html>
