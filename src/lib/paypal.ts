@@ -1,5 +1,3 @@
-import { computeSubtotalCents, computeTotalCents } from "./pricing";
-
 export async function getPayPalAccessToken(): Promise<string> {
   const base = process.env.PAYPAL_API_BASE!;
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
@@ -49,56 +47,4 @@ export async function capturePayPalOrder(paypalOrderId: string): Promise<any> {
     },
   });
   return res.json();
-}
-
-type VariantRow = { id: string; price_cents: number; stock: number };
-type CartLine = { variantId: string; quantity: number };
-type Customer = { name: string; email: string; address: string; city: string; countryCode: string };
-
-export function buildOrderRecord({
-  items,
-  variants,
-  zone,
-  customer,
-  locale,
-  paypalOrderId,
-}: {
-  items: CartLine[];
-  variants: VariantRow[];
-  zone: { id: string; rateCents: number };
-  customer: Customer;
-  locale: "es" | "en";
-  paypalOrderId: string;
-}) {
-  const lines = items.map((i) => {
-    const variant = variants.find((v) => v.id === i.variantId);
-    if (!variant) throw new Error(`variant ${i.variantId} not found`);
-    return { variantId: i.variantId, quantity: i.quantity, unitPriceCents: variant.price_cents };
-  });
-  const subtotalCents = computeSubtotalCents(
-    lines.map((l) => ({ unitPriceCents: l.unitPriceCents, quantity: l.quantity }))
-  );
-  const totalCents = computeTotalCents(subtotalCents, zone.rateCents);
-
-  return {
-    order: {
-      customer_name: customer.name,
-      customer_email: customer.email,
-      address_line: customer.address,
-      city: customer.city,
-      country_code: customer.countryCode,
-      shipping_zone_id: zone.id,
-      status: "paid" as const,
-      subtotal_cents: subtotalCents,
-      shipping_cents: zone.rateCents,
-      total_cents: totalCents,
-      locale,
-      paypal_order_id: paypalOrderId,
-    },
-    items: lines.map((l) => ({
-      variant_id: l.variantId,
-      quantity: l.quantity,
-      unit_price_cents: l.unitPriceCents,
-    })),
-  };
 }

@@ -64,19 +64,6 @@ export default function CheckoutPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   items: state.items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
-                  countryCode: form.countryCode,
-                }),
-              });
-              const data = await res.json();
-              return data.paypalOrderId;
-            }}
-            onApprove={async (data) => {
-              const res = await fetch("/api/paypal/capture-order", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  paypalOrderId: data.orderID,
-                  items: state.items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
                   customer: {
                     name: form.name,
                     email: form.email,
@@ -86,6 +73,15 @@ export default function CheckoutPage() {
                   },
                   locale: "es",
                 }),
+              });
+              const data = await res.json();
+              return data.paypalOrderId;
+            }}
+            onApprove={async (data) => {
+              const res = await fetch("/api/paypal/capture-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paypalOrderId: data.orderID }),
               });
               const result = await res.json();
               if (result.orderId) {
