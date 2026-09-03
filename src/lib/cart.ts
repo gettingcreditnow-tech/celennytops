@@ -15,7 +15,8 @@ export type CartAction =
   | { type: "ADD_ITEM"; item: CartItem }
   | { type: "REMOVE_ITEM"; variantId: string }
   | { type: "SET_QUANTITY"; variantId: string; quantity: number }
-  | { type: "CLEAR" };
+  | { type: "CLEAR" }
+  | { type: "LOAD"; state: CartState };
 
 export function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -55,6 +56,8 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
     }
     case "CLEAR":
       return { items: [] };
+    case "LOAD":
+      return action.state;
     default:
       return state;
   }

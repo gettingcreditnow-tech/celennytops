@@ -15,18 +15,21 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-function loadInitialState(): CartState {
-  if (typeof window === "undefined") return { items: [] };
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as CartState) : { items: [] };
-  } catch {
-    return { items: [] };
-  }
-}
-
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(cartReducer, { items: [] }, loadInitialState);
+  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+
+  // The server always renders an empty cart (no access to localStorage), so
+  // the client's first render must match that or React throws a hydration
+  // mismatch. Load whatever was persisted only after mount, once hydration
+  // has already settled on the empty state.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) dispatch({ type: "LOAD", state: JSON.parse(raw) as CartState });
+    } catch {
+      // corrupt or inaccessible storage - keep the empty cart
+    }
+  }, []);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));

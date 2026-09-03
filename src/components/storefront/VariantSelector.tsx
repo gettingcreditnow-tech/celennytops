@@ -26,7 +26,11 @@ export function VariantSelector({
             disabled={v.stock === 0}
             onClick={() => setSelected(v)}
             aria-pressed={selected?.id === v.id}
-            className="border px-3 py-1 disabled:opacity-40"
+            className={`border px-3 py-1 disabled:opacity-40 ${
+              selected?.id === v.id
+                ? "border-brand-crimson bg-brand-crimson text-white"
+                : "border-brand-crimson/40"
+            }`}
           >
             {v.size ?? v.color}
           </button>

@@ -69,4 +69,10 @@ describe("cartReducer", () => {
     const withItem = cartReducer(empty, { type: "ADD_ITEM", item });
     expect(cartReducer(withItem, { type: "CLEAR" }).items).toHaveLength(0);
   });
+
+  it("replaces state wholesale on load", () => {
+    const loaded: CartState = { items: [item] };
+    const state = cartReducer(empty, { type: "LOAD", state: loaded });
+    expect(state).toEqual(loaded);
+  });
 });
