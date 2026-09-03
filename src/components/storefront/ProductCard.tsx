@@ -20,7 +20,7 @@ export function ProductCard({
     <Link href={`/product/${product.id}`} className="block">
       <img src={product.images[0] ?? "/placeholder.jpg"} alt={name} />
       <h3>{name}</h3>
-      <p>{formatUsd(lowestPrice)}</p>
+      <p>${formatUsd(lowestPrice)}</p>
       {soldOut && <span>{t("outOfStock")}</span>}
     </Link>
   );

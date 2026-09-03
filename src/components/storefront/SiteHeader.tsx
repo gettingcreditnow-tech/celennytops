@@ -5,9 +5,9 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 export function SiteHeader() {
   const t = useTranslations("nav");
   return (
-    <header className="flex items-center justify-between px-6 py-4 font-script text-2xl">
-      <Link href="/">
-        <img src="/logo.png" alt="Celenny tops" className="h-16 w-auto" />
+    <header className="relative flex items-center justify-end px-6 py-4 font-script text-2xl">
+      <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <img src="/logo.png" alt="Celenny tops" className="h-20 w-auto" />
       </Link>
       <nav className="flex items-center gap-4 text-base font-body">
         <Link href="/catalog">{t("catalog")}</Link>

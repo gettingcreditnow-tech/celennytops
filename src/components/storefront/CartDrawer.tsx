@@ -29,13 +29,13 @@ export function CartDrawer() {
               onChange={(e) => setQuantity(item.variantId, Number(e.target.value))}
               aria-label={`quantity-${item.variantId}`}
             />
-            <span>{formatUsd(item.unitPriceCents * item.quantity)}</span>
+            <span>${formatUsd(item.unitPriceCents * item.quantity)}</span>
             <button onClick={() => removeItem(item.variantId)}>x</button>
           </li>
         ))}
       </ul>
       <p>
-        {t("subtotal")}: {formatUsd(subtotal)}
+        {t("subtotal")}: ${formatUsd(subtotal)}
       </p>
     </div>
   );

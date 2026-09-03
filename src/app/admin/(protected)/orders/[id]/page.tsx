@@ -57,10 +57,10 @@ export default function AdminOrderDetailPage({
       <p>Estado: {order.status}</p>
       <ul>
         {items.map((i) => (
-          <li key={i.id}>{i.quantity} x {i.product_variants?.sku} — {formatUsd(i.unit_price_cents * i.quantity)}</li>
+          <li key={i.id}>{i.quantity} x {i.product_variants?.sku} — ${formatUsd(i.unit_price_cents * i.quantity)}</li>
         ))}
       </ul>
-      <p>Total: {formatUsd(order.total_cents)}</p>
+      <p>Total: ${formatUsd(order.total_cents)}</p>
       <input placeholder="Numero de seguimiento" value={tracking} onChange={(e) => setTracking(e.target.value)} />
       <button onClick={markShipped}>Marcar como enviado</button>
     </main>

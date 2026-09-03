@@ -28,7 +28,7 @@ describe("ProductCard", () => {
       </NextIntlClientProvider>
     );
     expect(screen.getByText("Top rojo")).toBeInTheDocument();
-    expect(screen.getByText("25.00")).toBeInTheDocument();
+    expect(screen.getByText("$25.00")).toBeInTheDocument();
     expect(screen.queryByText(/agotado/i)).not.toBeInTheDocument();
   });
 

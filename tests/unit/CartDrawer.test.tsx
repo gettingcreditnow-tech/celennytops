@@ -45,6 +45,6 @@ describe("CartDrawer", () => {
     fireEvent.click(screen.getByText("add"));
 
     expect(screen.getByText("Top rojo")).toBeInTheDocument();
-    expect(screen.getByText("25.00")).toBeInTheDocument();
+    expect(screen.getByText("$25.00")).toBeInTheDocument();
   });
 });

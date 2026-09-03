@@ -12,7 +12,7 @@ export function OrdersTable({ orders }: { orders: OrderRow[] }) {
         {orders.map((o) => (
           <tr key={o.id}>
             <td>{o.customer_name}</td>
-            <td>{formatUsd(o.total_cents)}</td>
+            <td>${formatUsd(o.total_cents)}</td>
             <td>{o.status}</td>
             <td><Link href={`/admin/orders/${o.id}`}>Ver</Link></td>
           </tr>

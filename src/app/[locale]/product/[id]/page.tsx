@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ProductWithVariants } from "@/lib/products";
 import { VariantSelector } from "@/components/storefront/VariantSelector";
+import { ProductGallery } from "@/components/storefront/ProductGallery";
 import { useCart } from "@/context/CartContext";
 
 export default function ProductPage({
@@ -44,7 +45,7 @@ export default function ProductPage({
 
   return (
     <main className="px-6 py-10">
-      <img src={product.images[0] ?? "/placeholder.jpg"} alt={name} />
+      <ProductGallery images={product.images} alt={name} />
       <h1 className="font-script text-3xl">{name}</h1>
       <p>{description}</p>
       <VariantSelector

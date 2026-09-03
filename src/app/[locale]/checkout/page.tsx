@@ -50,8 +50,8 @@ export default function CheckoutPage() {
         />
       </form>
       <div className="mt-6">
-        <p>{t("shipping")}: {formatUsd(shipping)}</p>
-        <p>{t("total")}: {formatUsd(total)}</p>
+        <p>{t("shipping")}: ${formatUsd(shipping)}</p>
+        <p>{t("total")}: ${formatUsd(total)}</p>
       </div>
       <div className="mt-6">
         <PayPalScriptProvider
