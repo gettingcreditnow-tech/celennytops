@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { capturePayPalOrder } from "@/lib/paypal";
 import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from "@/lib/email";
+import type { OrderItemRow, OrderRow } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   const { paypalOrderId } = await req.json();
@@ -11,11 +12,11 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminSupabaseClient();
 
-  const { data: order, error: orderError } = await supabase
+  const { data: order, error: orderError } = (await supabase
     .from("orders")
     .select("*")
     .eq("paypal_order_id", paypalOrderId)
-    .maybeSingle();
+    .maybeSingle()) as { data: OrderRow | null; error: unknown };
   if (orderError || !order) {
     return NextResponse.json({ error: "order_not_found" }, { status: 404 });
   }
@@ -27,10 +28,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_order_status" }, { status: 409 });
   }
 
-  const { data: items, error: itemsError } = await supabase
+  const { data: items, error: itemsError } = (await supabase
     .from("order_items")
     .select("*")
-    .eq("order_id", order.id);
+    .eq("order_id", order.id)) as { data: OrderItemRow[] | null; error: unknown };
   if (itemsError || !items) {
     return NextResponse.json({ error: "order_not_found" }, { status: 404 });
   }
@@ -51,13 +52,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "amount_mismatch" }, { status: 409 });
   }
 
-  const { data: updatedOrder, error: updateError } = await supabase
+  const { data: updatedOrder, error: updateError } = (await supabase
     .from("orders")
     .update({ status: "paid" })
     .eq("id", order.id)
     .eq("status", "pending")
     .select()
-    .maybeSingle();
+    .maybeSingle()) as { data: OrderRow | null; error: unknown };
   if (updateError) {
     return NextResponse.json({ error: "order_update_failed" }, { status: 500 });
   }

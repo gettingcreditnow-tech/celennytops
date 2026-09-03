@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { formatUsd } from "./pricing";
+import type { OrderRow } from "./types";
 
 // Constructed lazily (not at module scope) because `new Resend(...)` throws
 // synchronously when RESEND_API_KEY is unset, which would otherwise crash
@@ -13,21 +14,14 @@ function getResendClient(): Resend {
   return resendClient;
 }
 
-// These mirror the relevant columns of the `orders` table (snake_case), not
-// the camelCase `Order` type in `src/lib/types.ts` — capture-order/route.ts
-// passes the raw Supabase row straight through to these functions.
-type OrderConfirmationInput = {
-  customer_email: string;
-  customer_name: string;
-  total_cents: number;
-  locale: "es" | "en";
-};
+// capture-order/route.ts passes the raw `orders` row straight through, so these
+// inputs are slices of the shared OrderRow type rather than parallel shapes.
+export type OrderConfirmationInput = Pick<
+  OrderRow,
+  "customer_email" | "customer_name" | "total_cents" | "locale"
+>;
 
-type AdminNewOrderInput = {
-  id: string;
-  customer_name: string;
-  total_cents: number;
-};
+export type AdminNewOrderInput = Pick<OrderRow, "id" | "customer_name" | "total_cents">;
 
 export function buildOrderConfirmationEmail(order: OrderConfirmationInput) {
   const isEs = order.locale === "es";

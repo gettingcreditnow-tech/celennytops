@@ -28,27 +28,36 @@ export type ShippingZone = {
 
 export type OrderStatus = "pending" | "paid" | "shipped" | "cancelled";
 
-export type Order = {
+/**
+ * A row of the `orders` table exactly as Supabase returns it (snake_case).
+ * Orders are only ever read/written as raw rows - by the PayPal routes, the
+ * admin screens and the email builders - so unlike `Product`/`ProductVariant`
+ * there is no camelCase mapping layer, and this is the single shape everything
+ * in the order path shares. Mirrors supabase/migrations/0001_init.sql.
+ */
+export type OrderRow = {
   id: string;
-  customerName: string;
-  customerEmail: string;
-  addressLine: string;
+  customer_name: string;
+  customer_email: string;
+  address_line: string;
   city: string;
-  countryCode: string;
-  shippingZoneId: string | null;
+  country_code: string;
+  shipping_zone_id: string | null;
   status: OrderStatus;
-  subtotalCents: number;
-  shippingCents: number;
-  totalCents: number;
+  subtotal_cents: number;
+  shipping_cents: number;
+  total_cents: number;
   locale: "es" | "en";
-  trackingNumber: string | null;
-  paypalOrderId: string | null;
+  tracking_number: string | null;
+  paypal_order_id: string | null;
+  created_at: string;
 };
 
-export type OrderItem = {
+/** A row of the `order_items` table (snake_case), as Supabase returns it. */
+export type OrderItemRow = {
   id: string;
-  orderId: string;
-  variantId: string;
+  order_id: string;
+  variant_id: string;
   quantity: number;
-  unitPriceCents: number;
+  unit_price_cents: number;
 };

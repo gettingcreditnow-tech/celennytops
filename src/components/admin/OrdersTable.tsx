@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { formatUsd } from "@/lib/pricing";
+import type { OrderRow } from "@/lib/types";
 
-export function OrdersTable({ orders }: { orders: any[] }) {
+export function OrdersTable({ orders }: { orders: OrderRow[] }) {
   return (
     <table className="w-full text-left">
       <thead>

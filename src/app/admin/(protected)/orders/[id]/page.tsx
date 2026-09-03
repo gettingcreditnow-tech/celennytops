@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import { formatUsd } from "@/lib/pricing";
+import type { OrderItemRow, OrderRow, ProductVariant } from "@/lib/types";
+
+/** order_items rows joined with their variant, as selected below. */
+type OrderItemWithVariant = OrderItemRow & {
+  product_variants: { sku: ProductVariant["sku"] } | null;
+};
 
 export default function AdminOrderDetailPage({
   params,
@@ -10,8 +16,8 @@ export default function AdminOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const [id, setId] = useState<string | null>(null);
-  const [order, setOrder] = useState<any>(null);
-  const [items, setItems] = useState<any[]>([]);
+  const [order, setOrder] = useState<OrderRow | null>(null);
+  const [items, setItems] = useState<OrderItemWithVariant[]>([]);
   const [tracking, setTracking] = useState("");
 
   useEffect(() => {
@@ -36,7 +42,7 @@ export default function AdminOrderDetailPage({
   }, [id]);
 
   async function markShipped() {
-    if (!id) return;
+    if (!id || !order) return;
     const supabase = createBrowserSupabaseClient();
     await supabase.from("orders").update({ status: "shipped", tracking_number: tracking }).eq("id", id);
     setOrder({ ...order, status: "shipped", tracking_number: tracking });
