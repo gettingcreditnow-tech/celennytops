@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { useCart } from "@/context/CartContext";
 import { computeSubtotalCents, computeTotalCents, formatUsd } from "@/lib/pricing";
 import { getShippingZoneForCountry } from "@/lib/shipping";
@@ -49,7 +50,30 @@ export default function CheckoutPage() {
         <p>{t("shipping")}: {formatUsd(shipping)}</p>
         <p>{t("total")}: {formatUsd(total)}</p>
       </div>
-      <div id="paypal-button-container" className="mt-6" />
+      <div className="mt-6">
+        <PayPalScriptProvider
+          options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!, currency: "USD" }}
+        >
+          <PayPalButtons
+            disabled={!zone || state.items.length === 0}
+            createOrder={async () => {
+              const res = await fetch("/api/paypal/create-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  items: state.items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
+                  countryCode: form.countryCode,
+                }),
+              });
+              const data = await res.json();
+              return data.paypalOrderId;
+            }}
+            onApprove={async () => {
+              // capture handled in Task 12
+            }}
+          />
+        </PayPalScriptProvider>
+      </div>
     </main>
   );
 }
