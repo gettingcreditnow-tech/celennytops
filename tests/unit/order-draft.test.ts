@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   buildOrderDraft,
+  findReusablePendingOrder,
   parseCartItems,
   type ShippingZoneRow,
   type VariantPricingRow,
@@ -120,5 +121,74 @@ describe("buildOrderDraft", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.draft.subtotalCents).toBe(2500);
+  });
+});
+
+describe("findReusablePendingOrder", () => {
+  const lines = [
+    { variantId: "v1", quantity: 2, unitPriceCents: 2500 },
+    { variantId: "v2", quantity: 1, unitPriceCents: 1000 },
+  ];
+  const matchingItems = [
+    { variant_id: "v2", quantity: 1, unit_price_cents: 1000 },
+    { variant_id: "v1", quantity: 2, unit_price_cents: 2500 },
+  ];
+
+  it("reuses a pending order whose items match, regardless of row order", () => {
+    expect(
+      findReusablePendingOrder([{ paypal_order_id: "pp-1", order_items: matchingItems }], lines)
+    ).toBe("pp-1");
+  });
+
+  it("ignores a candidate with a different quantity", () => {
+    const items = matchingItems.map((i) =>
+      i.variant_id === "v1" ? { ...i, quantity: 3 } : i
+    );
+    expect(findReusablePendingOrder([{ paypal_order_id: "pp-1", order_items: items }], lines)).toBeNull();
+  });
+
+  it("ignores a candidate with a different variant or a different price", () => {
+    expect(
+      findReusablePendingOrder(
+        [
+          { paypal_order_id: "pp-1", order_items: [...matchingItems.slice(1), { variant_id: "v9", quantity: 1, unit_price_cents: 1000 }] },
+          { paypal_order_id: "pp-2", order_items: matchingItems.map((i) => ({ ...i, unit_price_cents: 1 })) },
+        ],
+        lines
+      )
+    ).toBeNull();
+  });
+
+  it("ignores candidates with extra or missing lines", () => {
+    expect(
+      findReusablePendingOrder([{ paypal_order_id: "pp-1", order_items: matchingItems.slice(0, 1) }], lines)
+    ).toBeNull();
+    expect(
+      findReusablePendingOrder(
+        [
+          {
+            paypal_order_id: "pp-1",
+            order_items: [...matchingItems, { variant_id: "v3", quantity: 1, unit_price_cents: 100 }],
+          },
+        ],
+        lines
+      )
+    ).toBeNull();
+  });
+
+  it("skips candidates with no PayPal order id and returns the first usable match", () => {
+    expect(
+      findReusablePendingOrder(
+        [
+          { paypal_order_id: null, order_items: matchingItems },
+          { paypal_order_id: "pp-2", order_items: matchingItems },
+        ],
+        lines
+      )
+    ).toBe("pp-2");
+  });
+
+  it("returns null when there are no candidates", () => {
+    expect(findReusablePendingOrder([], lines)).toBeNull();
   });
 });

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { buildOrderDraft, parseCartItems } from "@/lib/order-draft";
+import {
+  buildOrderDraft,
+  findReusablePendingOrder,
+  parseCartItems,
+  PENDING_ORDER_REUSE_WINDOW_MS,
+  type PendingOrderCandidate,
+} from "@/lib/order-draft";
 import { createPayPalOrder } from "@/lib/paypal";
 
 export async function POST(req: NextRequest) {
@@ -35,6 +41,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(draftResult.body, { status: draftResult.status });
   }
   const { lines, subtotalCents, shippingCents, totalCents, zone } = draftResult.draft;
+
+  // This endpoint is unauthenticated and fires on every PayPal button click, so
+  // without this an impatient shopper writes a new pending order (with their
+  // full name, email and address) per click. Reuse the identical one instead.
+  const { data: candidates } = (await supabase
+    .from("orders")
+    .select("paypal_order_id, order_items(variant_id, quantity, unit_price_cents)")
+    .eq("status", "pending")
+    .eq("customer_email", customer.email)
+    .eq("customer_name", customer.name)
+    .eq("address_line", customer.address)
+    .eq("city", customer.city)
+    .eq("country_code", customer.countryCode)
+    .eq("total_cents", totalCents)
+    .gte("created_at", new Date(Date.now() - PENDING_ORDER_REUSE_WINDOW_MS).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(5)) as { data: PendingOrderCandidate[] | null };
+
+  const reusablePaypalOrderId = findReusablePendingOrder(candidates ?? [], lines);
+  if (reusablePaypalOrderId) {
+    return NextResponse.json({ paypalOrderId: reusablePaypalOrderId });
+  }
 
   const paypalOrder = await createPayPalOrder(totalCents, "USD");
   if (!paypalOrder?.id) {

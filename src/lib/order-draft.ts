@@ -127,3 +127,54 @@ export function buildOrderDraft(
     },
   };
 }
+
+/**
+ * How far back create-order looks for a pending order it can reuse. Long enough
+ * to absorb a shopper clicking the PayPal button repeatedly, short enough that
+ * the reused PayPal order has not expired.
+ */
+export const PENDING_ORDER_REUSE_WINDOW_MS = 15 * 60 * 1000;
+
+export type PendingOrderCandidate = {
+  paypal_order_id: string | null;
+  order_items:
+    | { variant_id: string; quantity: number; unit_price_cents: number }[]
+    | null;
+};
+
+function itemsMatchLines(
+  items: NonNullable<PendingOrderCandidate["order_items"]>,
+  lines: OrderDraftLine[]
+): boolean {
+  if (items.length !== lines.length) return false;
+  // parseCartItems rejects duplicate variant ids, so one item per line.
+  return lines.every((line) =>
+    items.some(
+      (item) =>
+        item.variant_id === line.variantId &&
+        item.quantity === line.quantity &&
+        item.unit_price_cents === line.unitPriceCents
+    )
+  );
+}
+
+/**
+ * Finds an existing pending order the caller can reuse instead of writing a new
+ * one. Every PayPal button click otherwise inserts a fresh orders row with the
+ * customer's PII, from an unauthenticated endpoint, before any payment happens.
+ *
+ * Candidates must already be filtered (same customer, address, total, status
+ * pending, recent); this only confirms the line items are identical.
+ */
+export function findReusablePendingOrder(
+  candidates: PendingOrderCandidate[],
+  lines: OrderDraftLine[]
+): string | null {
+  for (const candidate of candidates) {
+    if (!candidate.paypal_order_id) continue;
+    if (itemsMatchLines(candidate.order_items ?? [], lines)) {
+      return candidate.paypal_order_id;
+    }
+  }
+  return null;
+}
