@@ -23,15 +23,20 @@ export function ProductForm({
   const [descriptionEn, setDescriptionEn] = useState(initialProduct?.descriptionEn ?? "");
   const [images, setImages] = useState<string[]>(initialProduct?.images ?? []);
   const [isActive, setIsActive] = useState(initialProduct?.isActive ?? true);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [variants, setVariants] = useState<VariantDraft[]>(
     initialVariants?.map((v) => ({ ...v })) ?? [{ size: "", color: "", priceCents: 0, sku: "", stock: 0 }]
   );
 
   async function handleImageUpload(file: File) {
+    setUploadError(null);
     const supabase = createBrowserSupabaseClient();
     const path = `${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("product-images").upload(path, file);
-    if (error) return;
+    if (error) {
+      setUploadError(`No se pudo subir la imagen: ${error.message}`);
+      return;
+    }
     const { data } = supabase.storage.from("product-images").getPublicUrl(path);
     setImages((prev) => [...prev, data.publicUrl]);
   }
@@ -85,6 +90,7 @@ export function ProductForm({
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
       </label>
       <input type="file" accept="image/*" onChange={(e) => e.target.files && handleImageUpload(e.target.files[0])} />
+      {uploadError && <p role="alert" className="text-red-600">{uploadError}</p>}
       <div className="flex gap-2">
         {images.map((src) => (
           <img key={src} src={src} width={80} height={80} alt="" />

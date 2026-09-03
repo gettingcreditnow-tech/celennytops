@@ -7,6 +7,9 @@
    - Supabase project URL/keys (Project Settings > API)
    - PayPal sandbox client ID/secret (developer.paypal.com > My Apps & Credentials)
    - Resend API key (resend.com)
+   - `ORDER_NOTIFICATION_EMAIL` — the shop inbox that receives the "new order"
+     and "payment needs review" notifications sent from
+     `src/lib/email.ts`. Customer confirmations go to the buyer instead.
 3. Run the SQL in `supabase/migrations/` **in filename order**
    (`0001_init.sql`, `0002_admin_allowlist.sql`, `0003_storage_policies.sql`),
    then `supabase/seed.sql`, against your Supabase project (SQL Editor).
@@ -25,7 +28,14 @@
    Being a signed-up Supabase user is **not** enough — every admin RLS policy
    and the `/admin` app gate check this table, so an account that is not listed
    here gets no admin access at all.
-6. `npm run dev`
+6. Verify the sending domain in Resend. `src/lib/email.ts` sends every message
+   `from: "Celenny tops <orders@celennytops.com>"`, and Resend rejects any send
+   from a domain that is not verified on the account — add `celennytops.com`
+   under Resend > Domains and publish the DNS records it gives you, or change
+   that `from` address to a domain you have verified. Until then no order email
+   goes out (the send failure is caught and logged server-side, so the checkout
+   itself still succeeds).
+7. `npm run dev`
 
 ## Deploying to Vercel
 
