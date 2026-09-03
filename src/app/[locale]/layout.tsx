@@ -3,6 +3,7 @@ import { getMessages } from "next-intl/server";
 import { routing } from "../../../i18n/routing";
 import { SiteHeader } from "../../components/storefront/SiteHeader";
 import { SiteFooter } from "../../components/storefront/SiteFooter";
+import { CartProvider } from "@/context/CartContext";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -22,9 +23,11 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          <SiteHeader />
-          {children}
-          <SiteFooter />
+          <CartProvider>
+            <SiteHeader />
+            {children}
+            <SiteFooter />
+          </CartProvider>
         </NextIntlClientProvider>
       </body>
     </html>
