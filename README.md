@@ -7,10 +7,24 @@
    - Supabase project URL/keys (Project Settings > API)
    - PayPal sandbox client ID/secret (developer.paypal.com > My Apps & Credentials)
    - Resend API key (resend.com)
-3. Run the SQL in `supabase/migrations/0001_init.sql` then `supabase/seed.sql`
-   against your Supabase project (SQL Editor).
-4. Create a public Storage bucket named `product-images`.
-5. Create the 2 admin users under Authentication > Users.
+3. Run the SQL in `supabase/migrations/` **in filename order**
+   (`0001_init.sql`, `0002_admin_allowlist.sql`, `0003_storage_policies.sql`),
+   then `supabase/seed.sql`, against your Supabase project (SQL Editor).
+4. Create a public Storage bucket named `product-images`. "Public" only grants
+   public *read*; `0003_storage_policies.sql` adds the write policies the admin
+   panel's image upload needs, so run it after the bucket exists.
+5. Create the 2 admin users under Authentication > Users, then allowlist them by
+   running this in the SQL Editor (lowercase emails, one row each):
+
+   ```sql
+   insert into admin_emails (email) values
+     ('primer-admin@example.com'),
+     ('segundo-admin@example.com');
+   ```
+
+   Being a signed-up Supabase user is **not** enough — every admin RLS policy
+   and the `/admin` app gate check this table, so an account that is not listed
+   here gets no admin access at all.
 6. `npm run dev`
 
 ## Deploying to Vercel
