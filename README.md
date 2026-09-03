@@ -49,5 +49,6 @@
 
 ## Testing
 
-`npm test` runs the unit test suite (pricing, shipping zones, cart, PayPal
-order building, email content).
+`npm test` runs the unit test suite (pricing, shipping zones, cart, cart page,
+PayPal order building, server-side order pricing/stock checks, capture-order's
+amount verification and status transitions, email content, middleware routing).
