@@ -6,7 +6,9 @@ export function SiteHeader() {
   const t = useTranslations("nav");
   return (
     <header className="flex items-center justify-between px-6 py-4 font-script text-2xl">
-      <Link href="/">Celenny tops</Link>
+      <Link href="/">
+        <img src="/logo.jpg" alt="Celenny tops" className="h-14 w-auto" />
+      </Link>
       <nav className="flex items-center gap-4 text-base font-body">
         <Link href="/catalog">{t("catalog")}</Link>
         <Link href="/cart">{t("cart")}</Link>
