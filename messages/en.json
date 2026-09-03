@@ -1,0 +1,8 @@
+{
+  "nav": { "catalog": "Catalog", "cart": "Cart" },
+  "home": { "tagline": "Handmade with love", "cta": "View catalog" },
+  "product": { "addToCart": "Add to cart", "outOfStock": "Out of stock", "size": "Size", "color": "Color" },
+  "cart": { "title": "Your cart", "empty": "Your cart is empty", "subtotal": "Subtotal", "checkout": "Checkout" },
+  "checkout": { "title": "Checkout", "name": "Full name", "email": "Email", "address": "Address", "city": "City", "country": "Country", "shipping": "Shipping", "total": "Total", "pay": "Pay with PayPal" },
+  "confirmation": { "title": "Thank you for your order", "body": "We sent you an email with your order details." }
+}

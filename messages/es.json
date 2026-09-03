@@ -1,0 +1,8 @@
+{
+  "nav": { "catalog": "Catalogo", "cart": "Carrito" },
+  "home": { "tagline": "Tejido a mano con amor", "cta": "Ver catalogo" },
+  "product": { "addToCart": "Agregar al carrito", "outOfStock": "Agotado", "size": "Talla", "color": "Color" },
+  "cart": { "title": "Tu carrito", "empty": "Tu carrito esta vacio", "subtotal": "Subtotal", "checkout": "Finalizar compra" },
+  "checkout": { "title": "Finalizar compra", "name": "Nombre completo", "email": "Correo electronico", "address": "Direccion", "city": "Ciudad", "country": "Pais", "shipping": "Envio", "total": "Total", "pay": "Pagar con PayPal" },
+  "confirmation": { "title": "Gracias por tu compra", "body": "Te enviamos un correo con los detalles de tu pedido." }
+}
