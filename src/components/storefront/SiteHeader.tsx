@@ -5,11 +5,12 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 export function SiteHeader() {
   const t = useTranslations("nav");
   return (
-    <header className="relative flex items-center justify-end px-6 py-4 font-script text-2xl">
-      <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+    <header className="grid grid-cols-3 items-center px-6 py-2 font-script text-2xl">
+      <div />
+      <Link href="/" className="flex justify-center">
         <img src="/logo.png" alt="Celenny tops" className="h-20 w-auto" />
       </Link>
-      <nav className="flex items-center gap-4 text-base font-body">
+      <nav className="flex items-center justify-end gap-4 text-base font-body">
         <Link href="/catalog">{t("catalog")}</Link>
         <Link href="/cart">{t("cart")}</Link>
         <LanguageSwitcher />
