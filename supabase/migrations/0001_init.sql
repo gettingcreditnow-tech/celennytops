@@ -87,3 +87,12 @@ create policy "authenticated update orders" on orders
 
 create policy "authenticated read order items" on order_items
   for select using (auth.role() = 'authenticated');
+
+create or replace function decrement_variant_stock(p_variant_id uuid, p_quantity integer)
+returns void as $$
+begin
+  update product_variants
+  set stock = greatest(stock - p_quantity, 0)
+  where id = p_variant_id;
+end;
+$$ language plpgsql;

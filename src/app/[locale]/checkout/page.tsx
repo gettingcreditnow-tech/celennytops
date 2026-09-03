@@ -7,10 +7,12 @@ import { useCart } from "@/context/CartContext";
 import { computeSubtotalCents, computeTotalCents, formatUsd } from "@/lib/pricing";
 import { getShippingZoneForCountry } from "@/lib/shipping";
 import type { ShippingZone } from "@/lib/types";
+import { useRouter } from "../../../../i18n/routing";
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
-  const { state } = useCart();
+  const { state, clear } = useCart();
+  const router = useRouter();
   const [zones, setZones] = useState<ShippingZone[]>([]);
   const [form, setForm] = useState({
     name: "",
@@ -68,8 +70,28 @@ export default function CheckoutPage() {
               const data = await res.json();
               return data.paypalOrderId;
             }}
-            onApprove={async () => {
-              // capture handled in Task 12
+            onApprove={async (data) => {
+              const res = await fetch("/api/paypal/capture-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  paypalOrderId: data.orderID,
+                  items: state.items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })),
+                  customer: {
+                    name: form.name,
+                    email: form.email,
+                    address: form.address,
+                    city: form.city,
+                    countryCode: form.countryCode,
+                  },
+                  locale: "es",
+                }),
+              });
+              const result = await res.json();
+              if (result.orderId) {
+                clear();
+                router.push(`/checkout/confirmation/${result.orderId}`);
+              }
             }}
           />
         </PayPalScriptProvider>
