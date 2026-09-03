@@ -7,7 +7,7 @@ export function SiteHeader() {
   return (
     <header className="flex items-center justify-between px-6 py-4 font-script text-2xl">
       <Link href="/">
-        <img src="/logo.jpg" alt="Celenny tops" className="h-14 w-auto" />
+        <img src="/logo.png" alt="Celenny tops" className="h-16 w-auto" />
       </Link>
       <nav className="flex items-center gap-4 text-base font-body">
         <Link href="/catalog">{t("catalog")}</Link>
