@@ -17,7 +17,6 @@ export function SiteHeader() {
         <img src="/logo.png" alt="Celenny tops" className="h-14 w-auto sm:h-20" />
       </Link>
       <nav className="flex items-center justify-end gap-2 text-sm font-body sm:gap-4 sm:text-base">
-        <Link href="/catalog">{t("catalog")}</Link>
         <Link href="/cart" className="relative mr-1.5">
           {t("cart")}
           {itemCount > 0 && (

@@ -1,6 +1,6 @@
 {
-  "nav": { "catalog": "Catalogo", "cart": "Carrito" },
-  "home": { "tagline": "Tejido a mano con amor", "cta": "Ver catalogo" },
+  "nav": { "cart": "Carrito" },
+  "home": { "tagline": "Tejido a mano con amor" },
   "product": { "addToCart": "Agregar al carrito", "outOfStock": "Agotado", "size": "Talla", "color": "Color" },
   "cart": { "title": "Tu carrito", "empty": "Tu carrito esta vacio", "subtotal": "Subtotal", "checkout": "Finalizar compra" },
   "checkout": { "title": "Finalizar compra", "name": "Nombre completo", "email": "Correo electronico", "address": "Direccion", "city": "Ciudad", "country": "Pais", "shipping": "Envio", "total": "Total", "pay": "Pagar con PayPal", "bankTransfer": { "title": "Deposito bancario", "holder": "Titular", "holderId": "Cedula", "instructions": "Por favor, enviame el comprobante de pago.", "submit": "Enviar comprobante y confirmar pedido", "error": "No pudimos enviar tu comprobante. Intenta de nuevo.", "tooLarge": "El archivo es demasiado grande (maximo 4 MB)." } },
