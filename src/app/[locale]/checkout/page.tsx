@@ -16,6 +16,7 @@ export default function CheckoutPage() {
   const { state, clear } = useCart();
   const router = useRouter();
   const [zones, setZones] = useState<ShippingZone[]>([]);
+  const [freeShippingMinQuantity, setFreeShippingMinQuantity] = useState<number | null>(null);
   // Only Dominican Republic (Santo Domingo sectors) ships for now - see
   // the shipping/bank-transfer plan. countryCode is fixed rather than a
   // free-text field so a customer can't select a destination we don't
@@ -31,12 +32,21 @@ export default function CheckoutPage() {
   useEffect(() => {
     fetch("/api/shipping-zones")
       .then((r) => r.json())
-      .then(setZones);
+      .then((data) => {
+        setZones(data.zones);
+        setFreeShippingMinQuantity(data.freeShippingMinQuantity);
+      });
   }, []);
 
   const subtotal = computeSubtotalCents(state.items);
   const zone = getShippingZoneForCountry(form.countryCode, zones, form.city || undefined);
-  const shipping = zone?.rateCents ?? 0;
+  const totalQuantity = state.items.reduce((sum, item) => sum + item.quantity, 0);
+  // This is a display-only mirror of the same comparison buildOrderDraft makes
+  // server-side (see order-draft.ts) - it decides what the customer sees before
+  // submitting, never what gets charged. The create-order routes independently
+  // recompute this from the database when the order is actually created.
+  const freeShippingApplied = freeShippingMinQuantity !== null && totalQuantity >= freeShippingMinQuantity;
+  const shipping = freeShippingApplied ? 0 : zone?.rateCents ?? 0;
   const total = computeTotalCents(subtotal, shipping);
   const doSectors = zones.filter((z) => z.countryCodes.includes("DO") && z.sector);
 
@@ -83,10 +93,19 @@ export default function CheckoutPage() {
         </select>
       </form>
       <div className="mt-6">
-        <p>
-          {t("shipping")}
-          {zone?.sector ? " (VIMENPAQ)" : ""}: RD${formatDop(shipping)}
-        </p>
+        {freeShippingApplied ? (
+          <p>
+            {t("shipping")}
+            {zone?.sector ? " (VIMENPAQ)" : ""}:{" "}
+            <span className="line-through opacity-60">RD${formatDop(zone?.rateCents ?? 0)}</span> RD$0 —{" "}
+            {t("freeShipping", { count: freeShippingMinQuantity ?? 0 })}
+          </p>
+        ) : (
+          <p>
+            {t("shipping")}
+            {zone?.sector ? " (VIMENPAQ)" : ""}: RD${formatDop(shipping)}
+          </p>
+        )}
         <p>{t("total")}: RD${formatDop(total)}</p>
       </div>
       <div className="mt-6">
