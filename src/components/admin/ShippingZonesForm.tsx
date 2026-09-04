@@ -28,12 +28,15 @@ export function ShippingZonesForm({
     setThresholdError(null);
     setSavingThreshold(true);
     const supabase = createBrowserSupabaseClient();
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("store_settings")
       .update({ free_shipping_min_quantity: freeShippingMinQuantity })
-      .eq("id", true);
+      .eq("id", true)
+      .select();
     if (error) {
       setThresholdError(`No se pudo guardar: ${error.message}`);
+    } else if (!data || data.length === 0) {
+      setThresholdError("No se pudo guardar: sin permisos o la configuracion no existe.");
     }
     setSavingThreshold(false);
   }
@@ -72,7 +75,7 @@ export function ShippingZonesForm({
             type="number"
             min={1}
             value={freeShippingMinQuantity}
-            onChange={(e) => setFreeShippingMinQuantity(Number(e.target.value))}
+            onChange={(e) => setFreeShippingMinQuantity(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
           />
         </label>
         <button onClick={saveFreeShippingThreshold} disabled={savingThreshold}>

@@ -34,10 +34,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "no_shipping_zone" }, { status: 400 });
   }
 
-  const { data: settings } = await supabase
+  const { data: settings, error: settingsError } = await supabase
     .from("store_settings")
     .select("free_shipping_min_quantity")
     .maybeSingle();
+  if (settingsError) {
+    console.error("Failed to read store_settings, defaulting to no free shipping:", settingsError);
+  }
+  // Missing/unreadable settings row -> no free shipping (the safe direction).
   const freeShippingMinQuantity = settings?.free_shipping_min_quantity ?? Infinity;
 
   // Prices, stock and shipping are all recomputed from the database rows here;

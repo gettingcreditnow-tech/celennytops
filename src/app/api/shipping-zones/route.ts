@@ -16,6 +16,9 @@ export async function GET() {
       sector: z.sector,
       rateCents: z.rate_cents,
     })),
+    // null = "unknown/not configured" for display purposes; the checkout
+    // page treats null as "never applies", matching the create-order
+    // routes' own Infinity fallback for the same missing-row case.
     freeShippingMinQuantity: settings?.free_shipping_min_quantity ?? null,
   });
 }

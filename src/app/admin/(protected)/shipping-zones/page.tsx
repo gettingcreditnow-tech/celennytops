@@ -17,6 +17,9 @@ export default async function AdminShippingZonesPage() {
   return (
     <ShippingZonesForm
       initialZones={zones}
+      // Form default only if the row is somehow missing - does not reflect
+      // live checkout behavior, which falls back to no-free-shipping in
+      // that case (see the create-order routes' own ?? Infinity fallback).
       initialFreeShippingMinQuantity={settings?.free_shipping_min_quantity ?? 2}
     />
   );
