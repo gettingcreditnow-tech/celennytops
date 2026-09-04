@@ -10,6 +10,7 @@ export async function GET() {
       id: z.id,
       name: z.name,
       countryCodes: z.country_codes,
+      sector: z.sector,
       rateCents: z.rate_cents,
     }))
   );

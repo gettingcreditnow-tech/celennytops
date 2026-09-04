@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   // Prices, stock and shipping are all recomputed from the database rows here;
   // nothing the client sent besides variant ids and quantities is trusted.
-  const draftResult = buildOrderDraft(cartItems, variants, zones, customer.countryCode);
+  const draftResult = buildOrderDraft(cartItems, variants, zones, customer.countryCode, customer.city);
   if (!draftResult.ok) {
     return NextResponse.json(draftResult.body, { status: draftResult.status });
   }

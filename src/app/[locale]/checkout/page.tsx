@@ -30,9 +30,13 @@ export default function CheckoutPage() {
   }, []);
 
   const subtotal = computeSubtotalCents(state.items);
-  const zone = form.countryCode ? getShippingZoneForCountry(form.countryCode, zones) : null;
+  const isDO = form.countryCode.toUpperCase() === "DO";
+  const zone = form.countryCode
+    ? getShippingZoneForCountry(form.countryCode, zones, isDO ? form.city : undefined)
+    : null;
   const shipping = zone?.rateCents ?? 0;
   const total = computeTotalCents(subtotal, shipping);
+  const doSectors = zones.filter((z) => z.countryCodes.includes("DO") && z.sector);
 
   return (
     <main className="px-6 py-10">
@@ -41,16 +45,30 @@ export default function CheckoutPage() {
         <input placeholder={t("name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <input placeholder={t("email")} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         <input placeholder={t("address")} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-        <input placeholder={t("city")} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        {isDO ? (
+          <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}>
+            <option value="">{t("city")}</option>
+            {doSectors.map((z) => (
+              <option key={z.id} value={z.sector!}>
+                {z.sector} — ${formatUsd(z.rateCents)}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input placeholder={t("city")} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+        )}
         <input
           placeholder={t("country")}
           value={form.countryCode}
-          onChange={(e) => setForm({ ...form, countryCode: e.target.value.toUpperCase() })}
+          onChange={(e) => setForm({ ...form, countryCode: e.target.value.toUpperCase(), city: "" })}
           maxLength={2}
         />
       </form>
       <div className="mt-6">
-        <p>{t("shipping")}: ${formatUsd(shipping)}</p>
+        <p>
+          {t("shipping")}
+          {zone?.sector ? " (VIMENPAQ)" : ""}: ${formatUsd(shipping)}
+        </p>
         <p>{t("total")}: ${formatUsd(total)}</p>
       </div>
       <div className="mt-6">
