@@ -51,6 +51,8 @@ export type OrderRow = {
   locale: "es" | "en";
   tracking_number: string | null;
   paypal_order_id: string | null;
+  payment_method: "paypal" | "bank_transfer";
+  payment_proof_path: string | null;
   created_at: string;
 };
 

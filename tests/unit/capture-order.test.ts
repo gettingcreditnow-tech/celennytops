@@ -41,6 +41,8 @@ const order: OrderRow = {
   locale: "es",
   tracking_number: null,
   paypal_order_id: "pp-1",
+  payment_method: "paypal",
+  payment_proof_path: null,
   created_at: "2026-01-01T00:00:00Z",
 };
 
