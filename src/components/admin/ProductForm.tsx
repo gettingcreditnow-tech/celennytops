@@ -27,6 +27,11 @@ export function ProductForm({
   const [variants, setVariants] = useState<VariantDraft[]>(
     initialVariants?.map((v) => ({ ...v })) ?? [{ size: "", color: "", priceCents: 0, sku: "", stock: 0 }]
   );
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteNotice, setDeleteNotice] = useState<string | null>(null);
 
   async function handleImageUpload(file: File) {
     setUploadError(null);
@@ -42,6 +47,8 @@ export function ProductForm({
   }
 
   async function handleSave() {
+    setSaveError(null);
+    setSaving(true);
     const supabase = createBrowserSupabaseClient();
     const productRow = {
       name_es: nameEs,
@@ -54,10 +61,20 @@ export function ProductForm({
 
     let productId = initialProduct?.id;
     if (productId) {
-      await supabase.from("products").update(productRow).eq("id", productId);
+      const { error } = await supabase.from("products").update(productRow).eq("id", productId);
+      if (error) {
+        setSaveError(`No se pudo guardar el producto: ${error.message}`);
+        setSaving(false);
+        return;
+      }
     } else {
-      const { data } = await supabase.from("products").insert(productRow).select().single();
-      productId = data!.id;
+      const { data, error } = await supabase.from("products").insert(productRow).select().single();
+      if (error || !data) {
+        setSaveError(`No se pudo crear el producto: ${error?.message ?? "error desconocido"}`);
+        setSaving(false);
+        return;
+      }
+      productId = data.id;
     }
 
     for (const v of variants) {
@@ -69,14 +86,58 @@ export function ProductForm({
         sku: v.sku,
         stock: v.stock,
       };
-      if (v.id) {
-        await supabase.from("product_variants").update(variantRow).eq("id", v.id);
-      } else {
-        await supabase.from("product_variants").insert(variantRow);
+      const { error } = v.id
+        ? await supabase.from("product_variants").update(variantRow).eq("id", v.id)
+        : await supabase.from("product_variants").insert(variantRow);
+      if (error) {
+        setSaveError(`No se pudo guardar una variante (${v.sku || v.size || "sin nombre"}): ${error.message}`);
+        setSaving(false);
+        return;
       }
     }
 
     router.push("/admin/products");
+  }
+
+  async function handleDelete() {
+    if (!initialProduct?.id) return;
+    if (!window.confirm(`¿Eliminar "${nameEs || "este producto"}"? Esta accion no se puede deshacer.`)) return;
+
+    setDeleting(true);
+    setDeleteError(null);
+    setDeleteNotice(null);
+    const supabase = createBrowserSupabaseClient();
+    const { error } = await supabase.from("products").delete().eq("id", initialProduct.id);
+
+    if (!error) {
+      router.push("/admin/products");
+      return;
+    }
+
+    // 23503 = foreign_key_violation - the product has real order history (an
+    // order_items row still points at one of its variants), so it can't be
+    // hard-deleted without breaking that order's record. Deactivating is the
+    // safe fallback: it disappears from the storefront immediately, same
+    // outcome the admin actually wants, without losing order data.
+    if (error.code === "23503") {
+      const { error: deactivateError } = await supabase
+        .from("products")
+        .update({ is_active: false })
+        .eq("id", initialProduct.id);
+      if (deactivateError) {
+        setDeleteError(`No se pudo eliminar ni desactivar: ${deactivateError.message}`);
+      } else {
+        setIsActive(false);
+        setDeleteNotice(
+          "Este producto tiene pedidos asociados, asi que no se puede eliminar por completo - se desactivo en su lugar y ya no aparece en la tienda."
+        );
+      }
+      setDeleting(false);
+      return;
+    }
+
+    setDeleteError(`No se pudo eliminar: ${error.message}`);
+    setDeleting(false);
   }
 
   return (
@@ -121,9 +182,25 @@ export function ProductForm({
         + Variante
       </button>
 
-      <button onClick={handleSave} className="mt-4 rounded-full bg-brand-crimson px-6 py-2 text-white">
-        Guardar
+      {saveError && <p role="alert" className="text-red-600">{saveError}</p>}
+      <button onClick={handleSave} disabled={saving} className="mt-4 rounded-full bg-brand-crimson px-6 py-2 text-white disabled:opacity-40">
+        {saving ? "Guardando..." : "Guardar"}
       </button>
+
+      {initialProduct?.id && (
+        <>
+          {deleteNotice && <p role="status" className="text-amber-700">{deleteNotice}</p>}
+          {deleteError && <p role="alert" className="text-red-600">{deleteError}</p>}
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="rounded-full border border-red-600 px-6 py-2 text-red-600 disabled:opacity-40"
+          >
+            {deleting ? "Eliminando..." : "Eliminar producto"}
+          </button>
+        </>
+      )}
     </div>
   );
 }
