@@ -42,12 +42,16 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmationInput):
   await getResendClient().emails.send({ from: FROM_ADDRESS, ...email });
 }
 
-export async function sendAdminNewOrderEmail(order: AdminNewOrderInput): Promise<void> {
+export async function sendAdminNewOrderEmail(
+  order: AdminNewOrderInput,
+  options?: { note?: string }
+): Promise<void> {
+  const noteHtml = options?.note ? `<p>${options.note}</p>` : "";
   await getResendClient().emails.send({
     from: FROM_ADDRESS,
     to: process.env.ORDER_NOTIFICATION_EMAIL!,
     subject: `Nuevo pedido de ${order.customer_name}`,
-    html: `<p>Pedido ${order.id} por $${formatUsd(order.total_cents)} USD.</p>`,
+    html: `<p>Pedido ${order.id} por $${formatUsd(order.total_cents)} USD.</p>${noteHtml}`,
   });
 }
 
