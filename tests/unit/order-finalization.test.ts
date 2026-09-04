@@ -63,12 +63,21 @@ describe("finalizeOrderPayment", () => {
     ]);
   });
 
-  it("sends the customer confirmation and admin notification emails", async () => {
+  it("sends the customer confirmation but not a second admin email for bank-transfer orders", async () => {
     const stub = createSupabaseStub();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await finalizeOrderPayment(stub.client as any, order, items);
     expect(sendOrderConfirmationEmail).toHaveBeenCalledWith(order);
-    expect(sendAdminNewOrderEmail).toHaveBeenCalledWith(order);
+    expect(sendAdminNewOrderEmail).not.toHaveBeenCalled();
+  });
+
+  it("sends both the customer confirmation and admin notification for PayPal orders", async () => {
+    const stub = createSupabaseStub();
+    const paypalOrder = { ...order, payment_method: "paypal" as const };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await finalizeOrderPayment(stub.client as any, paypalOrder, items);
+    expect(sendOrderConfirmationEmail).toHaveBeenCalledWith(paypalOrder);
+    expect(sendAdminNewOrderEmail).toHaveBeenCalledWith(paypalOrder);
   });
 
   it("logs but does not throw when a stock decrement fails", async () => {

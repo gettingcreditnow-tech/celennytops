@@ -10,6 +10,7 @@ const ACCOUNTS = [
 ];
 const ACCOUNT_HOLDER = "Celenny Caraballo";
 const ACCOUNT_HOLDER_ID = "402-0399758-6";
+const MAX_PROOF_BYTES = 4 * 1024 * 1024;
 
 export function BankTransferPayment({
   disabled,
@@ -25,8 +26,12 @@ export function BankTransferPayment({
 
   async function handleSubmit() {
     if (!proof) return;
-    setSubmitting(true);
     setError(null);
+    if (proof.size > MAX_PROOF_BYTES) {
+      setError(t("tooLarge"));
+      return;
+    }
+    setSubmitting(true);
     try {
       await onSubmit(proof);
     } catch {

@@ -6,7 +6,8 @@ alter table orders
     check (payment_method in ('paypal', 'bank_transfer')),
   add column payment_proof_path text;
 
-insert into storage.buckets (id, name, public) values ('payment-proofs', 'payment-proofs', false);
+insert into storage.buckets (id, name, public) values ('payment-proofs', 'payment-proofs', false)
+on conflict (id) do nothing;
 
 -- The bucket is private and nothing uploads to it except the server (via the
 -- service-role client in the bank-transfer create-order route, which bypasses

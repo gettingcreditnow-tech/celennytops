@@ -139,7 +139,7 @@ export default function CheckoutPage() {
         </PayPalScriptProvider>
       </div>
       {zone?.sector && (
-        <BankTransferPayment disabled={!zone || state.items.length === 0} onSubmit={submitBankTransfer} />
+        <BankTransferPayment disabled={state.items.length === 0} onSubmit={submitBankTransfer} />
       )}
     </main>
   );

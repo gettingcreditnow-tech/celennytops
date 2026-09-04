@@ -178,6 +178,14 @@ describe("POST /api/bank-transfer/create-order", () => {
     expect(await res.json()).toEqual({ error: "invalid_proof_type" });
   });
 
+  it("rejects a proof file larger than the size limit", async () => {
+    const oversized = new Uint8Array(4 * 1024 * 1024 + 1);
+    oversized.set(VALID_JPEG_BYTES);
+    const res = await post(buildForm({ proof: new File([oversized], "proof.jpg", { type: "image/jpeg" }) }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "proof_too_large" });
+  });
+
   it("passes through the insufficient-stock rejection from buildOrderDraft without uploading", async () => {
     const stub = createSupabaseStub({
       variants: { data: [{ id: "v1", price_cents: 2500, stock: 0 }], error: null },

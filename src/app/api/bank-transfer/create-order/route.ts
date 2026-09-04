@@ -3,7 +3,10 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { buildOrderDraft, parseCartItems } from "@/lib/order-draft";
 import { sendAdminNewOrderEmail } from "@/lib/email";
 
-const MAX_PROOF_BYTES = 5 * 1024 * 1024;
+// Vercel serverless functions cap request bodies at 4.5 MB; keep this
+// comfortably under that so the friendly proof_too_large response is what
+// actually fires, instead of the platform killing the request first.
+const MAX_PROOF_BYTES = 4 * 1024 * 1024;
 
 /**
  * How far back to look for an identical bank-transfer submission before

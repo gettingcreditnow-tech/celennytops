@@ -26,7 +26,14 @@ export async function finalizeOrderPayment(
 
   try {
     await sendOrderConfirmationEmail(order);
-    await sendAdminNewOrderEmail(order);
+    // Bank-transfer orders already notified the admin at creation time (with
+    // a note to review the proof) - sending it again here would just be a
+    // second identically-subjected email the moment the admin approves their
+    // own order. PayPal orders have no earlier admin notification, so they
+    // still need this one.
+    if (order.payment_method !== "bank_transfer") {
+      await sendAdminNewOrderEmail(order);
+    }
   } catch (err) {
     console.error(`Email send failed for order ${order.id}:`, err);
   }
