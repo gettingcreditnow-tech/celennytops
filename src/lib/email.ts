@@ -21,7 +21,17 @@ function getResendClient(): Resend {
 // inputs are slices of the shared OrderRow type rather than parallel shapes.
 export type OrderConfirmationInput = Pick<
   OrderRow,
-  "customer_email" | "customer_name" | "total_cents" | "locale"
+  | "id"
+  | "customer_email"
+  | "customer_name"
+  | "address_line"
+  | "city"
+  | "country_code"
+  | "subtotal_cents"
+  | "shipping_cents"
+  | "total_cents"
+  | "locale"
+  | "created_at"
 >;
 
 export type OrderConfirmationItem = {
@@ -64,15 +74,67 @@ function orderConfirmationItemsHtml(items: OrderConfirmationItem[], isEs: boolea
   return `<table style="width:100%;border-collapse:collapse;margin-top:16px;">${rows}</table>`;
 }
 
+function formatOrderDate(createdAt: string, isEs: boolean): string {
+  return new Date(createdAt).toLocaleDateString(isEs ? "es-DO" : "en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+const SUMMARY_LABELS = {
+  es: {
+    orderNumber: "Numero de pedido",
+    orderDate: "Fecha del pedido",
+    summary: "Resumen del pedido",
+    subtotal: "Subtotal",
+    shipping: "Envio",
+    total: "Total",
+    shipTo: "Direccion de envio",
+  },
+  en: {
+    orderNumber: "Order number",
+    orderDate: "Order date",
+    summary: "Order summary",
+    subtotal: "Subtotal",
+    shipping: "Shipping",
+    total: "Total",
+    shipTo: "Shipping address",
+  },
+};
+
 export function buildOrderConfirmationEmail(order: OrderConfirmationInput, items: OrderConfirmationItem[] = []) {
   const isEs = order.locale === "es";
+  const l = SUMMARY_LABELS[isEs ? "es" : "en"];
   const itemsHtml = orderConfirmationItemsHtml(items, isEs);
+  const greeting = isEs
+    ? `<p>Hola ${order.customer_name}, gracias por tu compra.</p>`
+    : `<p>Hi ${order.customer_name}, thank you for your order.</p>`;
+
+  const meta =
+    `<table style="width:100%;margin-top:16px;font-size:14px;color:#555;">` +
+    `<tr><td>${l.orderNumber}</td><td style="text-align:right;">${order.id}</td></tr>` +
+    `<tr><td>${l.orderDate}</td><td style="text-align:right;">${formatOrderDate(order.created_at, isEs)}</td></tr>` +
+    `</table>`;
+
+  const hr = `<hr style="margin:16px 0;border:none;border-top:1px solid #eee;" />`;
+
+  const summary =
+    `<h3 style="margin:0 0 8px;">${l.summary}</h3>` +
+    `<table style="width:100%;font-size:14px;">` +
+    `<tr><td>${l.subtotal}</td><td style="text-align:right;">$${formatUsd(order.subtotal_cents)} USD</td></tr>` +
+    `<tr><td>${l.shipping}</td><td style="text-align:right;">$${formatUsd(order.shipping_cents)} USD</td></tr>` +
+    `<tr><td style="font-weight:bold;padding-top:8px;">${l.total}</td><td style="text-align:right;font-weight:bold;padding-top:8px;">$${formatUsd(order.total_cents)} USD</td></tr>` +
+    `</table>`;
+
+  const shipTo =
+    `<h3 style="margin:0 0 8px;">${l.shipTo}</h3>` +
+    `<p style="margin:0;">${order.customer_name}<br/>${order.address_line}<br/>${order.city}, ${order.country_code}</p>`;
+
   return {
     to: order.customer_email,
     subject: isEs ? "Confirmacion de tu pedido - Celenny tops" : "Your order confirmation - Celenny tops",
-    html: isEs
-      ? `<p>Hola ${order.customer_name}, gracias por tu compra.</p>${itemsHtml}<p style="margin-top:16px;"><strong>Total: $${formatUsd(order.total_cents)} USD</strong></p>`
-      : `<p>Hi ${order.customer_name}, thank you for your order.</p>${itemsHtml}<p style="margin-top:16px;"><strong>Total: $${formatUsd(order.total_cents)} USD</strong></p>`,
+    html: `${greeting}${itemsHtml}${meta}${hr}${summary}${hr}${shipTo}`,
   };
 }
 
