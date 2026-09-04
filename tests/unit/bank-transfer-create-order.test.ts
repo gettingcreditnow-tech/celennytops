@@ -18,12 +18,20 @@ const zones = [
   { id: "z1", name: "Distrito Nacional", country_codes: ["DO"], sector: "Distrito Nacional", rate_cents: 500 },
 ];
 
+// Minimal valid JPEG bytes (SOI + APP0 marker) so the route's magic-byte
+// check accepts it - a plain string like "x" is not a real JPEG and would
+// now be correctly rejected as invalid_proof_type.
+const VALID_JPEG_BYTES = new Uint8Array([
+  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+]);
+
 function createSupabaseStub(opts: {
   variants: Result;
   zones: Result;
   upload?: { error: unknown };
   orderInsert?: Result;
   itemsInsert?: { error: unknown };
+  duplicates?: Result;
 }) {
   const uploads: { path: string }[] = [];
   const inserts: { table: string; payload: unknown }[] = [];
@@ -36,7 +44,17 @@ function createSupabaseStub(opts: {
         return { select: async () => opts.zones };
       }
       if (table === "orders") {
+        const duplicateChain: {
+          eq: () => typeof duplicateChain;
+          gte: () => typeof duplicateChain;
+          limit: () => Promise<Result>;
+        } = {
+          eq: () => duplicateChain,
+          gte: () => duplicateChain,
+          limit: async () => opts.duplicates ?? { data: [], error: null },
+        };
         return {
+          select: () => duplicateChain,
           insert: (payload: unknown) => {
             inserts.push({ table, payload });
             return {
@@ -93,7 +111,9 @@ function buildForm(
   );
   form.set("locale", overrides.locale ?? "es");
   const proof =
-    overrides.proof === undefined ? new File(["x"], "proof.jpg", { type: "image/jpeg" }) : overrides.proof;
+    overrides.proof === undefined
+      ? new File([VALID_JPEG_BYTES], "proof.jpg", { type: "image/jpeg" })
+      : overrides.proof;
   if (proof) form.set("proof", proof);
   return form;
 }
@@ -150,6 +170,14 @@ describe("POST /api/bank-transfer/create-order", () => {
     expect(await res.json()).toEqual({ error: "invalid_proof_type" });
   });
 
+  it("rejects a proof file whose content doesn't match its declared image type", async () => {
+    const res = await post(
+      buildForm({ proof: new File(["not actually a jpeg"], "proof.jpg", { type: "image/jpeg" }) })
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "invalid_proof_type" });
+  });
+
   it("passes through the insufficient-stock rejection from buildOrderDraft without uploading", async () => {
     const stub = createSupabaseStub({
       variants: { data: [{ id: "v1", price_cents: 2500, stock: 0 }], error: null },
@@ -162,5 +190,21 @@ describe("POST /api/bank-transfer/create-order", () => {
     expect(res.status).toBe(409);
     expect(await res.json()).toMatchObject({ error: "insufficient_stock" });
     expect(stub.uploads).toHaveLength(0);
+  });
+
+  it("rejects a duplicate submission within the reuse window without uploading a second proof", async () => {
+    const stub = createSupabaseStub({
+      variants: { data: variants, error: null },
+      zones: { data: zones, error: null },
+      duplicates: { data: [{ id: "existing-order" }], error: null },
+    });
+    createAdminSupabaseClient.mockReturnValue(stub.client);
+
+    const res = await post(buildForm());
+
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: "duplicate_submission" });
+    expect(stub.uploads).toHaveLength(0);
+    expect(stub.inserts).toHaveLength(0);
   });
 });
