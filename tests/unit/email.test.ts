@@ -23,6 +23,46 @@ describe("buildOrderConfirmationEmail", () => {
     } as any);
     expect(email.subject).toMatch(/order/i);
   });
+
+  it("includes each item's photo, name, size/color and line total", () => {
+    const email = buildOrderConfirmationEmail(
+      { customer_email: "ana@example.com", customer_name: "Ana", total_cents: 2500, locale: "es" } as any,
+      [
+        {
+          quantity: 2,
+          unitPriceCents: 1200,
+          size: "0-3 meses",
+          color: "Rosa",
+          productNameEs: "Zapatitos Rosa",
+          productNameEn: "Pink Booties",
+          image: "/products/pink/1.jpg",
+        },
+      ]
+    );
+    expect(email.html).toContain("Zapatitos Rosa");
+    expect(email.html).toContain("0-3 meses");
+    expect(email.html).toContain("x2");
+    expect(email.html).toContain("24.00");
+    expect(email.html).toContain("https://celennytops.com/products/pink/1.jpg");
+  });
+
+  it("resolves an already-absolute image URL as-is", () => {
+    const email = buildOrderConfirmationEmail(
+      { customer_email: "ana@example.com", customer_name: "Ana", total_cents: 2500, locale: "es" } as any,
+      [
+        {
+          quantity: 1,
+          unitPriceCents: 500,
+          size: null,
+          color: null,
+          productNameEs: "Set Minnie",
+          productNameEn: "Minnie Set",
+          image: "https://xptrfhqhaxtzbbcpvzfo.supabase.co/storage/v1/object/public/product-images/x.jpg",
+        },
+      ]
+    );
+    expect(email.html).toContain("https://xptrfhqhaxtzbbcpvzfo.supabase.co/storage/v1/object/public/product-images/x.jpg");
+  });
 });
 
 describe("buildPaymentIssueEmail", () => {

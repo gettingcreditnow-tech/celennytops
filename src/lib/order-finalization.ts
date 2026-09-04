@@ -1,6 +1,45 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { sendOrderConfirmationEmail, sendAdminNewOrderEmail } from "./email";
+import { sendOrderConfirmationEmail, sendAdminNewOrderEmail, type OrderConfirmationItem } from "./email";
 import type { OrderItemRow, OrderRow } from "./types";
+
+/**
+ * Looks up each line's product/variant details (photo, name, size, color) so
+ * the confirmation email can show what was actually bought, not just a
+ * total. Never throws: a lookup failure here must not stop the order from
+ * completing (stock already decremented, payment already captured) - the
+ * customer just gets a plainer confirmation email instead.
+ */
+async function loadConfirmationItems(
+  supabase: SupabaseClient,
+  orderId: string,
+  items: OrderItemRow[]
+): Promise<OrderConfirmationItem[]> {
+  try {
+    const { data: variants, error } = await supabase
+      .from("product_variants")
+      .select("id, size, color, products(name_es, name_en, images)")
+      .in(
+        "id",
+        items.map((item) => item.variant_id)
+      );
+    if (error) throw error;
+    return items.map((item) => {
+      const variant = (variants ?? []).find((v: any) => v.id === item.variant_id) as any;
+      return {
+        quantity: item.quantity,
+        unitPriceCents: item.unit_price_cents,
+        size: variant?.size ?? null,
+        color: variant?.color ?? null,
+        productNameEs: variant?.products?.name_es ?? null,
+        productNameEn: variant?.products?.name_en ?? null,
+        image: variant?.products?.images?.[0] ?? null,
+      };
+    });
+  } catch (err) {
+    console.error(`Could not load item details for order ${orderId}'s confirmation email:`, err);
+    return [];
+  }
+}
 
 /**
  * Everything that happens once an order is confirmed paid, regardless of how
@@ -24,8 +63,10 @@ export async function finalizeOrderPayment(
     }
   }
 
+  const confirmationItems = await loadConfirmationItems(supabase, order.id, items);
+
   try {
-    await sendOrderConfirmationEmail(order);
+    await sendOrderConfirmationEmail(order, confirmationItems);
     // Bank-transfer orders already notified the admin at creation time (with
     // a note to review the proof) - sending it again here would just be a
     // second identically-subjected email the moment the admin approves their

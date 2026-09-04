@@ -24,21 +24,63 @@ export type OrderConfirmationInput = Pick<
   "customer_email" | "customer_name" | "total_cents" | "locale"
 >;
 
+export type OrderConfirmationItem = {
+  quantity: number;
+  unitPriceCents: number;
+  size: string | null;
+  color: string | null;
+  productNameEs: string | null;
+  productNameEn: string | null;
+  /** Absolute URL, or a /public-relative path (e.g. seeded product photos) - email clients fetch images directly, so a relative path is resolved against SITE_ORIGIN. */
+  image: string | null;
+};
+
 export type AdminNewOrderInput = Pick<OrderRow, "id" | "customer_name" | "total_cents">;
 
-export function buildOrderConfirmationEmail(order: OrderConfirmationInput) {
+const SITE_ORIGIN = "https://celennytops.com";
+
+function absoluteImageUrl(image: string): string {
+  return image.startsWith("http") ? image : `${SITE_ORIGIN}${image}`;
+}
+
+function orderConfirmationItemsHtml(items: OrderConfirmationItem[], isEs: boolean): string {
+  if (items.length === 0) return "";
+  const rows = items
+    .map((item) => {
+      const name = (isEs ? item.productNameEs : item.productNameEn) ?? "";
+      const details = [item.size, item.color].filter(Boolean).join(" — ");
+      const img = item.image
+        ? `<img src="${absoluteImageUrl(item.image)}" alt="${name}" width="64" height="64" style="border-radius:8px;object-fit:cover;" />`
+        : "";
+      return (
+        `<tr>` +
+        `<td style="padding:8px 8px 8px 0;">${img}</td>` +
+        `<td style="padding:8px 0;">${name}<br/><span style="color:#888;font-size:13px;">${details} · x${item.quantity}</span></td>` +
+        `<td style="padding:8px 0;text-align:right;white-space:nowrap;">$${formatUsd(item.unitPriceCents * item.quantity)} USD</td>` +
+        `</tr>`
+      );
+    })
+    .join("");
+  return `<table style="width:100%;border-collapse:collapse;margin-top:16px;">${rows}</table>`;
+}
+
+export function buildOrderConfirmationEmail(order: OrderConfirmationInput, items: OrderConfirmationItem[] = []) {
   const isEs = order.locale === "es";
+  const itemsHtml = orderConfirmationItemsHtml(items, isEs);
   return {
     to: order.customer_email,
     subject: isEs ? "Confirmacion de tu pedido - Celenny tops" : "Your order confirmation - Celenny tops",
     html: isEs
-      ? `<p>Hola ${order.customer_name}, gracias por tu compra. Total: $${formatUsd(order.total_cents)} USD.</p>`
-      : `<p>Hi ${order.customer_name}, thank you for your order. Total: $${formatUsd(order.total_cents)} USD.</p>`,
+      ? `<p>Hola ${order.customer_name}, gracias por tu compra.</p>${itemsHtml}<p style="margin-top:16px;"><strong>Total: $${formatUsd(order.total_cents)} USD</strong></p>`
+      : `<p>Hi ${order.customer_name}, thank you for your order.</p>${itemsHtml}<p style="margin-top:16px;"><strong>Total: $${formatUsd(order.total_cents)} USD</strong></p>`,
   };
 }
 
-export async function sendOrderConfirmationEmail(order: OrderConfirmationInput): Promise<void> {
-  const email = buildOrderConfirmationEmail(order);
+export async function sendOrderConfirmationEmail(
+  order: OrderConfirmationInput,
+  items: OrderConfirmationItem[] = []
+): Promise<void> {
+  const email = buildOrderConfirmationEmail(order, items);
   await getResendClient().emails.send({ from: FROM_ADDRESS, ...email });
 }
 
