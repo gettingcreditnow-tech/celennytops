@@ -23,6 +23,7 @@ export type ShippingZone = {
   id: string;
   name: string;
   countryCodes: string[];
+  sector: string | null;
   rateCents: number;
 };
 

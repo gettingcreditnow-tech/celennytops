@@ -13,8 +13,8 @@ const variants: VariantPricingRow[] = [
 ];
 
 const zones: ShippingZoneRow[] = [
-  { id: "z1", name: "Pais local", country_codes: ["CO"], rate_cents: 500 },
-  { id: "z3", name: "Resto del mundo", country_codes: ["*"], rate_cents: 2500 },
+  { id: "z1", name: "Pais local", country_codes: ["CO"], sector: null, rate_cents: 500 },
+  { id: "z3", name: "Resto del mundo", country_codes: ["*"], sector: null, rate_cents: 2500 },
 ];
 
 describe("parseCartItems", () => {
@@ -121,6 +121,30 @@ describe("buildOrderDraft", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.draft.subtotalCents).toBe(2500);
+  });
+});
+
+describe("buildOrderDraft with Santo Domingo sectors", () => {
+  const doZones: ShippingZoneRow[] = [
+    { id: "sdo", name: "Santo Domingo Oeste", country_codes: ["DO"], sector: "Santo Domingo Oeste", rate_cents: 400 },
+    { id: "dn", name: "Distrito Nacional", country_codes: ["DO"], sector: "Distrito Nacional", rate_cents: 500 },
+  ];
+
+  it("uses the rate of the matching sector", () => {
+    const result = buildOrderDraft(
+      [{ variantId: "v1", quantity: 1 }],
+      variants,
+      doZones,
+      "DO",
+      "Distrito Nacional"
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.draft.shippingCents).toBe(500);
+  });
+
+  it("fails with no_shipping_zone when the sector is missing", () => {
+    const result = buildOrderDraft([{ variantId: "v1", quantity: 1 }], variants, doZones, "DO");
+    expect(result).toEqual({ ok: false, status: 400, body: { error: "no_shipping_zone" } });
   });
 });
 

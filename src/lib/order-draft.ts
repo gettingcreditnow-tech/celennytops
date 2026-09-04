@@ -18,6 +18,7 @@ export type ShippingZoneRow = {
   id: string;
   name: string;
   country_codes: string[];
+  sector: string | null;
   rate_cents: number;
 };
 
@@ -77,6 +78,7 @@ export function toShippingZone(row: ShippingZoneRow): ShippingZone {
     id: row.id,
     name: row.name,
     countryCodes: row.country_codes,
+    sector: row.sector,
     rateCents: row.rate_cents,
   };
 }
@@ -85,7 +87,8 @@ export function buildOrderDraft(
   items: CartItemInput[],
   variants: VariantPricingRow[],
   zones: ShippingZoneRow[],
-  countryCode: string
+  countryCode: string,
+  sector?: string
 ): OrderDraftResult {
   const lines: OrderDraftLine[] = [];
 
@@ -112,7 +115,7 @@ export function buildOrderDraft(
     });
   }
 
-  const zone = getShippingZoneForCountry(countryCode, zones.map(toShippingZone));
+  const zone = getShippingZoneForCountry(countryCode, zones.map(toShippingZone), sector);
   if (!zone) return { ok: false, status: 400, body: { error: "no_shipping_zone" } };
 
   const subtotalCents = computeSubtotalCents(lines);
