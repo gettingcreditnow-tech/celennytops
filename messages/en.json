@@ -4,5 +4,5 @@
   "product": { "addToCart": "Add to cart", "outOfStock": "Out of stock", "size": "Size", "color": "Color" },
   "cart": { "title": "Your cart", "empty": "Your cart is empty", "subtotal": "Subtotal", "checkout": "Checkout" },
   "checkout": { "title": "Checkout", "name": "Full name", "email": "Email", "address": "Address", "city": "City", "country": "Country", "shipping": "Shipping", "total": "Total", "pay": "Pay with PayPal", "bankTransfer": { "title": "Bank transfer", "holder": "Account holder", "holderId": "ID number", "instructions": "Please send me your payment proof.", "submit": "Send proof and confirm order", "error": "We could not send your proof. Please try again.", "tooLarge": "The file is too large (max 4 MB)." } },
-  "confirmation": { "title": "Thank you for your order", "body": "We sent you an email with your order details.", "pendingTitle": "Your order is being processed", "pendingBody": "We are verifying your payment. We will contact you once it is confirmed." }
+  "confirmation": { "title": "Thank you for your order", "body": "We sent you an email with your order details.", "pendingTitle": "Your order is being processed", "pendingBody": "We are verifying your payment. We will contact you once it is confirmed.", "shipTo": "Shipping address", "subtotal": "Subtotal", "shipping": "Shipping", "total": "Total" }
 }
