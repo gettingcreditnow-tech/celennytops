@@ -1,7 +1,10 @@
-insert into shipping_zones (name, country_codes, rate_cents, sort_order) values
-  ('Pais local', array['CO'], 500, 1),
-  ('Latinoamerica', array['MX','AR','PE','CL','EC','BR','VE','UY','PY','BO'], 1200, 2),
-  ('Resto del mundo', array['*'], 2500, 3);
+insert into shipping_zones (name, country_codes, sector, rate_cents, sort_order) values
+  ('Santo Domingo Oeste', array['DO'], 'Santo Domingo Oeste', 400, 1),
+  ('Distrito Nacional', array['DO'], 'Distrito Nacional', 500, 2),
+  ('Santo Domingo Norte', array['DO'], 'Santo Domingo Norte', 600, 3),
+  ('Santo Domingo Este', array['DO'], 'Santo Domingo Este', 700, 4),
+  ('Latinoamerica', array['MX','AR','PE','CL','EC','BR','VE','UY','PY','BO'], null, 1200, 5),
+  ('Resto del mundo', array['*'], null, 2500, 6);
 
 -- Celenny Tops Fase 1 catalog seed: crochet baby booties & slide sandals
 insert into products (id, name_es, name_en, description_es, description_en, category, images, is_active) values
