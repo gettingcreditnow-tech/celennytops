@@ -28,6 +28,7 @@ const VALID_JPEG_BYTES = new Uint8Array([
 function createSupabaseStub(opts: {
   variants: Result;
   zones: Result;
+  settings?: Result;
   upload?: { error: unknown };
   orderInsert?: Result;
   itemsInsert?: { error: unknown };
@@ -42,6 +43,13 @@ function createSupabaseStub(opts: {
       }
       if (table === "shipping_zones") {
         return { select: async () => opts.zones };
+      }
+      if (table === "store_settings") {
+        return {
+          select: () => ({
+            maybeSingle: async () => opts.settings ?? { data: { free_shipping_min_quantity: 2 }, error: null },
+          }),
+        };
       }
       if (table === "orders") {
         const duplicateChain: {
@@ -214,5 +222,20 @@ describe("POST /api/bank-transfer/create-order", () => {
     expect(await res.json()).toEqual({ error: "duplicate_submission" });
     expect(stub.uploads).toHaveLength(0);
     expect(stub.inserts).toHaveLength(0);
+  });
+
+  it("zeroes shipping once the cart quantity meets the free-shipping threshold", async () => {
+    const stub = createSupabaseStub({
+      variants: { data: variants, error: null },
+      zones: { data: zones, error: null },
+      orderInsert: { data: { id: "order-free-ship", customer_name: "Ana", total_cents: 5000 }, error: null },
+    });
+    createAdminSupabaseClient.mockReturnValue(stub.client);
+
+    const res = await post(buildForm({ items: [{ variantId: "v1", quantity: 2 }] }));
+
+    expect(res.status).toBe(200);
+    const orderInsert = stub.inserts.find((i) => i.table === "orders");
+    expect(orderInsert?.payload).toMatchObject({ shipping_cents: 0, total_cents: 5000 });
   });
 });

@@ -34,9 +34,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "no_shipping_zone" }, { status: 400 });
   }
 
+  const { data: settings } = await supabase
+    .from("store_settings")
+    .select("free_shipping_min_quantity")
+    .maybeSingle();
+  const freeShippingMinQuantity = settings?.free_shipping_min_quantity ?? Infinity;
+
   // Prices, stock and shipping are all recomputed from the database rows here;
   // nothing the client sent besides variant ids and quantities is trusted.
-  const draftResult = buildOrderDraft(cartItems, variants, zones, customer.countryCode, customer.city);
+  const draftResult = buildOrderDraft(
+    cartItems,
+    variants,
+    zones,
+    customer.countryCode,
+    customer.city,
+    freeShippingMinQuantity
+  );
   if (!draftResult.ok) {
     return NextResponse.json(draftResult.body, { status: draftResult.status });
   }

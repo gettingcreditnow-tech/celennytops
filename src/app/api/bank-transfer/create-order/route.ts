@@ -102,7 +102,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "no_shipping_zone" }, { status: 400 });
   }
 
-  const draftResult = buildOrderDraft(cartItems, variants, zones, customer.countryCode, customer.city);
+  const { data: settings } = await supabase
+    .from("store_settings")
+    .select("free_shipping_min_quantity")
+    .maybeSingle();
+  const freeShippingMinQuantity = settings?.free_shipping_min_quantity ?? Infinity;
+
+  const draftResult = buildOrderDraft(
+    cartItems,
+    variants,
+    zones,
+    customer.countryCode,
+    customer.city,
+    freeShippingMinQuantity
+  );
   if (!draftResult.ok) {
     return NextResponse.json(draftResult.body, { status: draftResult.status });
   }
