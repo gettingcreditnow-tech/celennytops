@@ -8,6 +8,7 @@ import { computeSubtotalCents, computeTotalCents, formatUsd } from "@/lib/pricin
 import { getShippingZoneForCountry } from "@/lib/shipping";
 import type { ShippingZone } from "@/lib/types";
 import { useRouter } from "../../../../i18n/routing";
+import { BankTransferPayment } from "@/components/storefront/BankTransferPayment";
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
@@ -37,6 +38,32 @@ export default function CheckoutPage() {
   const shipping = zone?.rateCents ?? 0;
   const total = computeTotalCents(subtotal, shipping);
   const doSectors = zones.filter((z) => z.countryCodes.includes("DO") && z.sector);
+
+  async function submitBankTransfer(proof: File) {
+    const formData = new FormData();
+    formData.set(
+      "items",
+      JSON.stringify(state.items.map((i) => ({ variantId: i.variantId, quantity: i.quantity })))
+    );
+    formData.set(
+      "customer",
+      JSON.stringify({
+        name: form.name,
+        email: form.email,
+        address: form.address,
+        city: form.city,
+        countryCode: form.countryCode,
+      })
+    );
+    formData.set("locale", locale);
+    formData.set("proof", proof);
+
+    const res = await fetch("/api/bank-transfer/create-order", { method: "POST", body: formData });
+    if (!res.ok) throw new Error("bank_transfer_failed");
+    const result = await res.json();
+    clear();
+    router.push(`/checkout/confirmation/${result.orderId}?method=bank_transfer`);
+  }
 
   return (
     <main className="px-6 py-10">
@@ -111,6 +138,9 @@ export default function CheckoutPage() {
           />
         </PayPalScriptProvider>
       </div>
+      {zone?.sector && (
+        <BankTransferPayment disabled={!zone || state.items.length === 0} onSubmit={submitBankTransfer} />
+      )}
     </main>
   );
 }
