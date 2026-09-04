@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { capturePayPalOrder } from "@/lib/paypal";
-import {
-  sendOrderConfirmationEmail,
-  sendAdminNewOrderEmail,
-  sendAdminPaymentIssueEmail,
-  type PaymentIssueInput,
-} from "@/lib/email";
+import { sendAdminPaymentIssueEmail, type PaymentIssueInput } from "@/lib/email";
+import { finalizeOrderPayment } from "@/lib/order-finalization";
 import { formatUsd } from "@/lib/pricing";
 import type { OrderItemRow, OrderRow } from "@/lib/types";
 
@@ -109,22 +105,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ orderId: order.id });
   }
 
-  for (const item of items) {
-    const { error: rpcError } = await supabase.rpc("decrement_variant_stock", {
-      p_variant_id: item.variant_id,
-      p_quantity: item.quantity,
-    });
-    if (rpcError) {
-      console.error(`Stock decrement failed for order ${order.id}, variant ${item.variant_id}:`, rpcError);
-    }
-  }
-
-  try {
-    await sendOrderConfirmationEmail(order);
-    await sendAdminNewOrderEmail(order);
-  } catch (err) {
-    console.error(`Email send failed for order ${order.id}:`, err);
-  }
+  await finalizeOrderPayment(supabase, updatedOrder, items);
 
   return NextResponse.json({ orderId: order.id });
 }
