@@ -148,6 +148,60 @@ describe("buildOrderDraft with Santo Domingo sectors", () => {
   });
 });
 
+describe("buildOrderDraft free shipping by quantity", () => {
+  const localVariants: VariantPricingRow[] = [
+    { id: "v1", price_cents: 2500, stock: 5 },
+    { id: "v2", price_cents: 1000, stock: 5 },
+  ];
+  const localZones: ShippingZoneRow[] = [
+    { id: "z1", name: "Pais local", country_codes: ["CO"], sector: null, rate_cents: 500 },
+  ];
+
+  it("charges the normal rate when total quantity is below the threshold", () => {
+    const result = buildOrderDraft([{ variantId: "v1", quantity: 1 }], localVariants, localZones, "CO", undefined, 2);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.draft.shippingCents).toBe(500);
+    expect(result.draft.freeShippingApplied).toBe(false);
+  });
+
+  it("zeroes shipping once a single line's quantity meets the threshold", () => {
+    const result = buildOrderDraft([{ variantId: "v1", quantity: 2 }], localVariants, localZones, "CO", undefined, 2);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.draft.shippingCents).toBe(0);
+    expect(result.draft.totalCents).toBe(result.draft.subtotalCents);
+    expect(result.draft.freeShippingApplied).toBe(true);
+    expect(result.draft.zone.rateCents).toBe(500);
+  });
+
+  it("sums quantity across multiple lines toward the threshold", () => {
+    const result = buildOrderDraft(
+      [
+        { variantId: "v1", quantity: 1 },
+        { variantId: "v2", quantity: 1 },
+      ],
+      localVariants,
+      localZones,
+      "CO",
+      undefined,
+      2
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.draft.freeShippingApplied).toBe(true);
+    expect(result.draft.shippingCents).toBe(0);
+  });
+
+  it("defaults to no free-shipping threshold when the parameter is omitted", () => {
+    const result = buildOrderDraft([{ variantId: "v1", quantity: 5 }], localVariants, localZones, "CO");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.draft.shippingCents).toBe(500);
+    expect(result.draft.freeShippingApplied).toBe(false);
+  });
+});
+
 describe("findReusablePendingOrder", () => {
   const lines = [
     { variantId: "v1", quantity: 2, unitPriceCents: 2500 },

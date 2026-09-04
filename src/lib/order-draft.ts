@@ -34,6 +34,7 @@ export type OrderDraft = {
   shippingCents: number;
   totalCents: number;
   zone: ShippingZone;
+  freeShippingApplied: boolean;
 };
 
 export type OrderDraftErrorBody =
@@ -88,7 +89,8 @@ export function buildOrderDraft(
   variants: VariantPricingRow[],
   zones: ShippingZoneRow[],
   countryCode: string,
-  sector?: string
+  sector?: string,
+  freeShippingMinQuantity: number = Infinity
 ): OrderDraftResult {
   const lines: OrderDraftLine[] = [];
 
@@ -119,14 +121,18 @@ export function buildOrderDraft(
   if (!zone) return { ok: false, status: 400, body: { error: "no_shipping_zone" } };
 
   const subtotalCents = computeSubtotalCents(lines);
+  const totalQuantity = lines.reduce((sum, line) => sum + line.quantity, 0);
+  const freeShippingApplied = totalQuantity >= freeShippingMinQuantity;
+  const shippingCents = freeShippingApplied ? 0 : zone.rateCents;
   return {
     ok: true,
     draft: {
       lines,
       subtotalCents,
-      shippingCents: zone.rateCents,
-      totalCents: computeTotalCents(subtotalCents, zone.rateCents),
+      shippingCents,
+      totalCents: computeTotalCents(subtotalCents, shippingCents),
       zone,
+      freeShippingApplied,
     },
   };
 }
