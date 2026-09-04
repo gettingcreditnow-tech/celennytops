@@ -16,12 +16,16 @@ export default function CheckoutPage() {
   const { state, clear } = useCart();
   const router = useRouter();
   const [zones, setZones] = useState<ShippingZone[]>([]);
+  // Only Dominican Republic (Santo Domingo sectors) ships for now - see
+  // the shipping/bank-transfer plan. countryCode is fixed rather than a
+  // free-text field so a customer can't select a destination we don't
+  // actually serve.
   const [form, setForm] = useState({
     name: "",
     email: "",
     address: "",
     city: "",
-    countryCode: "",
+    countryCode: "DO",
   });
 
   useEffect(() => {
@@ -31,10 +35,7 @@ export default function CheckoutPage() {
   }, []);
 
   const subtotal = computeSubtotalCents(state.items);
-  const isDO = form.countryCode.toUpperCase() === "DO";
-  const zone = form.countryCode
-    ? getShippingZoneForCountry(form.countryCode, zones, isDO ? form.city : undefined)
-    : null;
+  const zone = getShippingZoneForCountry(form.countryCode, zones, form.city || undefined);
   const shipping = zone?.rateCents ?? 0;
   const total = computeTotalCents(subtotal, shipping);
   const doSectors = zones.filter((z) => z.countryCodes.includes("DO") && z.sector);
@@ -72,24 +73,14 @@ export default function CheckoutPage() {
         <input placeholder={t("name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <input placeholder={t("email")} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
         <input placeholder={t("address")} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-        {isDO ? (
-          <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}>
-            <option value="">{t("city")}</option>
-            {doSectors.map((z) => (
-              <option key={z.id} value={z.sector!}>
-                {z.sector} — ${formatUsd(z.rateCents)}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <input placeholder={t("city")} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-        )}
-        <input
-          placeholder={t("country")}
-          value={form.countryCode}
-          onChange={(e) => setForm({ ...form, countryCode: e.target.value.toUpperCase(), city: "" })}
-          maxLength={2}
-        />
+        <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}>
+          <option value="">{t("city")}</option>
+          {doSectors.map((z) => (
+            <option key={z.id} value={z.sector!}>
+              {z.sector} — ${formatUsd(z.rateCents)}
+            </option>
+          ))}
+        </select>
       </form>
       <div className="mt-6">
         <p>
