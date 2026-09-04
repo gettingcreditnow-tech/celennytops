@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "../../../i18n/routing";
-import { formatUsd } from "@/lib/pricing";
+import { formatDop } from "@/lib/pricing";
 import type { ProductWithVariants } from "@/lib/products";
 
 export function ProductCard({
@@ -20,7 +20,7 @@ export function ProductCard({
     <Link href={`/product/${product.id}`} className="block">
       <img src={product.images[0] ?? "/placeholder.jpg"} alt={name} />
       <h3>{name}</h3>
-      <p>${formatUsd(lowestPrice)}</p>
+      <p>RD${formatDop(lowestPrice)}</p>
       {soldOut && <span>{t("outOfStock")}</span>}
     </Link>
   );

@@ -11,3 +11,14 @@ export function computeTotalCents(subtotalCents: number, shippingCents: number):
 export function formatUsd(cents: number): string {
   return (cents / 100).toFixed(2);
 }
+
+// Display-only conversion for the storefront (product prices, cart,
+// checkout totals) - the actual charge stays in USD cents everywhere else
+// (PayPal, capture-order's amount verification, admin panel, emails), so
+// this must never feed back into any stored or charged amount.
+const USD_TO_DOP_RATE = 60;
+
+export function formatDop(usdCents: number): string {
+  const dop = Math.round((usdCents / 100) * USD_TO_DOP_RATE);
+  return dop.toLocaleString("es-DO");
+}

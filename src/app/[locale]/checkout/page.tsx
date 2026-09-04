@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { useCart } from "@/context/CartContext";
-import { computeSubtotalCents, computeTotalCents, formatUsd } from "@/lib/pricing";
+import { computeSubtotalCents, computeTotalCents, formatDop } from "@/lib/pricing";
 import { getShippingZoneForCountry } from "@/lib/shipping";
 import type { ShippingZone } from "@/lib/types";
 import { useRouter } from "../../../../i18n/routing";
@@ -77,7 +77,7 @@ export default function CheckoutPage() {
           <option value="">{t("city")}</option>
           {doSectors.map((z) => (
             <option key={z.id} value={z.sector!}>
-              {z.sector} — ${formatUsd(z.rateCents)}
+              {z.sector} — RD${formatDop(z.rateCents)}
             </option>
           ))}
         </select>
@@ -85,9 +85,9 @@ export default function CheckoutPage() {
       <div className="mt-6">
         <p>
           {t("shipping")}
-          {zone?.sector ? " (VIMENPAQ)" : ""}: ${formatUsd(shipping)}
+          {zone?.sector ? " (VIMENPAQ)" : ""}: RD${formatDop(shipping)}
         </p>
-        <p>{t("total")}: ${formatUsd(total)}</p>
+        <p>{t("total")}: RD${formatDop(total)}</p>
       </div>
       <div className="mt-6">
         <PayPalScriptProvider
