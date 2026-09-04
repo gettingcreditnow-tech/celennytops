@@ -7,7 +7,9 @@ import type { OrderRow } from "./types";
 // this whole module on import - including the pure `buildOrderConfirmationEmail`
 // helper - in any environment (e.g. tests, local dev) without the key configured.
 // Must be a domain verified in the Resend account, or every send is rejected.
-const FROM_ADDRESS = "Celenny tops <orders@celennytops.com>";
+// Using Resend's shared test domain until celennytops.com is registered and
+// verified in Resend - swap back to "Celenny tops <orders@celennytops.com>" then.
+const FROM_ADDRESS = "Celenny tops <onboarding@resend.dev>";
 
 let resendClient: Resend | null = null;
 function getResendClient(): Resend {
