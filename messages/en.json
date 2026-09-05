@@ -1,6 +1,6 @@
 {
   "nav": { "cart": "Cart" },
-  "home": { "tagline": "Handmade with love" },
+  "home": { "tagline": "Handmade with love", "freeShippingBanner": "Free shipping on {count}+ items" },
   "product": { "addToCart": "Add to cart", "added": "Added", "outOfStock": "Out of stock", "size": "Size", "color": "Color" },
   "cart": { "title": "Your cart", "empty": "Your cart is empty", "subtotal": "Subtotal", "checkout": "Checkout" },
   "checkout": { "title": "Checkout", "name": "Full name", "email": "Email", "address": "Address", "city": "City", "country": "Country", "shipping": "Shipping", "total": "Total", "pay": "Pay with PayPal", "freeShipping": "Free shipping on {count}+ items", "bankTransfer": { "title": "Bank transfer", "holder": "Account holder", "holderId": "ID number", "instructions": "Please send me your payment proof.", "submit": "Send proof and confirm order", "error": "We could not send your proof. Please try again.", "tooLarge": "The file is too large (max 4 MB)." } },
