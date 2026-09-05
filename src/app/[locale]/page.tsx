@@ -46,7 +46,7 @@ export default async function HomePage({
       )}
       {categories.map(([category, categoryProducts]) => (
         <section key={category} className="mt-10">
-          <h2 className="font-script text-2xl">{category}</h2>
+          <h2 className="text-lg font-semibold uppercase tracking-wide text-brand-crimson">{category}</h2>
           <div className="mt-4">
             <ProductGrid products={categoryProducts} locale={locale} />
           </div>
