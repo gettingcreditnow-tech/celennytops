@@ -16,6 +16,7 @@ const order: OrderRow = {
   id: "order-1",
   customer_name: "Ana",
   customer_email: "ana@example.com",
+  customer_phone: "8095551234",
   address_line: "Calle 1",
   city: "Distrito Nacional",
   country_code: "DO",

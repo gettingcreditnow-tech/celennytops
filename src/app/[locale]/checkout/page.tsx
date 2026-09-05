@@ -24,6 +24,7 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
     address: "",
     city: "",
     countryCode: "DO",
@@ -61,6 +62,7 @@ export default function CheckoutPage() {
       JSON.stringify({
         name: form.name,
         email: form.email,
+        phone: form.phone,
         address: form.address,
         city: form.city,
         countryCode: form.countryCode,
@@ -82,6 +84,7 @@ export default function CheckoutPage() {
       <form className="mt-6 flex max-w-md flex-col gap-3">
         <input placeholder={t("name")} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         <input placeholder={t("email")} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+        <input placeholder={t("phone")} type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
         <input placeholder={t("address")} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
         <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}>
           <option value="">{t("city")}</option>
@@ -123,6 +126,7 @@ export default function CheckoutPage() {
                   customer: {
                     name: form.name,
                     email: form.email,
+                    phone: form.phone,
                     address: form.address,
                     city: form.city,
                     countryCode: form.countryCode,

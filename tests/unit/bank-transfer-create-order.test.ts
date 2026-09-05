@@ -111,6 +111,7 @@ function buildForm(
       overrides.customer ?? {
         name: "Ana",
         email: "ana@example.com",
+        phone: "8095551234",
         address: "Calle 1",
         city: "Distrito Nacional",
         countryCode: "DO",
@@ -160,10 +161,22 @@ describe("POST /api/bank-transfer/create-order", () => {
 
   it("rejects a country other than DO", async () => {
     const res = await post(
-      buildForm({ customer: { name: "A", email: "a@b.com", address: "x", city: "x", countryCode: "US" } })
+      buildForm({
+        customer: { name: "A", email: "a@b.com", phone: "8095551234", address: "x", city: "x", countryCode: "US" },
+      })
     );
     expect(res.status).toBe(400);
     expect(await res.json()).toEqual({ error: "unsupported_country" });
+  });
+
+  it("rejects a request with no phone number", async () => {
+    const res = await post(
+      buildForm({
+        customer: { name: "A", email: "a@b.com", address: "x", city: "Distrito Nacional", countryCode: "DO" },
+      })
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "invalid_customer" });
   });
 
   it("rejects a request with no proof file", async () => {

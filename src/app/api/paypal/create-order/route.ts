@@ -16,7 +16,14 @@ export async function POST(req: NextRequest) {
   if (!cartItems) {
     return NextResponse.json({ error: "invalid_items" }, { status: 400 });
   }
-  if (!customer?.countryCode || !customer?.name || !customer?.email || !customer?.address || !customer?.city) {
+  if (
+    !customer?.countryCode ||
+    !customer?.name ||
+    !customer?.email ||
+    !customer?.phone ||
+    !customer?.address ||
+    !customer?.city
+  ) {
     return NextResponse.json({ error: "invalid_customer" }, { status: 400 });
   }
 
@@ -91,6 +98,7 @@ export async function POST(req: NextRequest) {
     .insert({
       customer_name: customer.name,
       customer_email: customer.email,
+      customer_phone: customer.phone,
       address_line: customer.address,
       city: customer.city,
       country_code: customer.countryCode,

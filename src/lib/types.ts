@@ -40,6 +40,7 @@ export type OrderRow = {
   id: string;
   customer_name: string;
   customer_email: string;
+  customer_phone: string;
   address_line: string;
   city: string;
   country_code: string;

@@ -80,10 +80,31 @@ function post(body: unknown) {
   return POST({ json: async () => body } as NextRequest);
 }
 
-const customer = { name: "Ana", email: "ana@example.com", address: "Calle 1", city: "Bogota", countryCode: "CO" };
+const customer = {
+  name: "Ana",
+  email: "ana@example.com",
+  phone: "8095551234",
+  address: "Calle 1",
+  city: "Bogota",
+  countryCode: "CO",
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe("POST /api/paypal/create-order customer validation", () => {
+  it("rejects a request with no phone number", async () => {
+    const stub = createSupabaseStub({});
+    createAdminSupabaseClient.mockReturnValue(stub.client);
+
+    const { phone, ...customerWithoutPhone } = customer;
+    const res = await post({ items: [{ variantId: "v1", quantity: 1 }], customer: customerWithoutPhone, locale: "es" });
+
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "invalid_customer" });
+    void phone;
+  });
 });
 
 describe("POST /api/paypal/create-order free shipping", () => {

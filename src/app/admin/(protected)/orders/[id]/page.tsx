@@ -77,6 +77,7 @@ export default function AdminOrderDetailPage({
   return (
     <main className="px-6 py-6">
       <h1>{order.customer_name} — {order.customer_email}</h1>
+      <p>Telefono: {order.customer_phone || "(no registrado)"}</p>
       <p>{order.address_line}, {order.city}, {order.country_code}</p>
       <p>Estado: {order.status}</p>
       <p>Metodo de pago: {order.payment_method === "bank_transfer" ? "Deposito bancario" : "PayPal"}</p>
