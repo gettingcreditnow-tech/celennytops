@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
   if (orderError || !orderRow) {
-    return NextResponse.json({ error: "order_create_failed" }, { status: 500 });
+    return NextResponse.json({ error: "order_create_failed", detail: orderError?.message, code: orderError?.code }, { status: 500 });
   }
 
   const itemRows = lines.map((line) => ({
