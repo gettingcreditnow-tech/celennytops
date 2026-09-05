@@ -17,6 +17,16 @@ const config: Config = {
         script: ["\"Pacifico\"", "cursive"],
         body: ["\"Nunito\"", "sans-serif"],
       },
+      keyframes: {
+        "fade-cycle": {
+          "0%, 45%": { opacity: "1" },
+          "50%, 95%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+      },
+      animation: {
+        "fade-cycle": "fade-cycle 5s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

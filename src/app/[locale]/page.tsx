@@ -40,9 +40,11 @@ export default async function HomePage({
     <main className="px-6 py-10">
       <h1 className="font-script text-center text-4xl">{t("tagline")}</h1>
       {freeShippingMinQuantity !== null && (
-        <p className="mt-2 text-center font-medium text-brand-crimson">
-          {t("freeShippingBanner", { count: freeShippingMinQuantity })}
-        </p>
+        <div className="mt-4 flex justify-center">
+          <p className="animate-fade-cycle rounded-full bg-brand-crimson px-6 py-2 text-center text-lg font-bold text-white shadow-md">
+            🚚 {t("freeShippingBanner", { count: freeShippingMinQuantity })}
+          </p>
+        </div>
       )}
       {categories.map(([category, categoryProducts]) => (
         <section key={category} className="mt-10">
