@@ -19,8 +19,8 @@ export function CartDrawer() {
       <h2>{t("title")}</h2>
       <ul>
         {state.items.map((item) => (
-          <li key={item.variantId}>
-            <span>{item.name}</span>
+          <li key={item.variantId} className="flex items-center gap-3 py-2">
+            <span className="flex-1">{item.name}</span>
             <input
               type="number"
               min={0}
@@ -28,9 +28,16 @@ export function CartDrawer() {
               value={item.quantity}
               onChange={(e) => setQuantity(item.variantId, Number(e.target.value))}
               aria-label={`quantity-${item.variantId}`}
+              className="w-16"
             />
             <span>RD${formatDop(item.unitPriceCents * item.quantity)}</span>
-            <button onClick={() => removeItem(item.variantId)}>x</button>
+            <button
+              onClick={() => removeItem(item.variantId)}
+              aria-label={`Eliminar ${item.name}`}
+              className="rounded-full border border-red-600 px-3 py-1 text-sm text-red-600"
+            >
+              Eliminar
+            </button>
           </li>
         ))}
       </ul>

@@ -47,4 +47,22 @@ describe("CartDrawer", () => {
     expect(screen.getByText("Top rojo")).toBeInTheDocument();
     expect(screen.getByText("RD$1,500")).toBeInTheDocument();
   });
+
+  it("removes an item from the cart when Eliminar is clicked", () => {
+    render(
+      <NextIntlClientProvider locale="es" messages={messages}>
+        <CartProvider>
+          <Harness />
+        </CartProvider>
+      </NextIntlClientProvider>
+    );
+
+    fireEvent.click(screen.getByText("add"));
+    expect(screen.getByText("Top rojo")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /eliminar top rojo/i }));
+
+    expect(screen.queryByText("Top rojo")).not.toBeInTheDocument();
+    expect(screen.getByText(/vacio/i)).toBeInTheDocument();
+  });
 });
