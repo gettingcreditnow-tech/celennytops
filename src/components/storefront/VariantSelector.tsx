@@ -25,7 +25,7 @@ export function VariantSelector({
     // impatient shopper clicks again and ends up with a bigger quantity
     // than they meant to add.
     setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 700);
+    setTimeout(() => setJustAdded(false), 400);
   }
 
   return (

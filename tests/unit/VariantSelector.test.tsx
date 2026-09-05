@@ -57,7 +57,7 @@ describe("VariantSelector", () => {
     expect(onAddToCart).toHaveBeenCalledTimes(1);
 
     act(() => {
-      vi.advanceTimersByTime(700);
+      vi.advanceTimersByTime(400);
     });
     expect(screen.getByText(/agregar al carrito/i)).not.toBeDisabled();
 
