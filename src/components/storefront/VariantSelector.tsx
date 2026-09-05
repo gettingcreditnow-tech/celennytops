@@ -16,6 +16,17 @@ export function VariantSelector({
 }) {
   const t = useTranslations("product");
   const [selected, setSelected] = useState<ProductVariant | null>(null);
+  const [justAdded, setJustAdded] = useState(false);
+
+  function handleAddToCart() {
+    if (!selected) return;
+    onAddToCart(selected);
+    // Without this, clicking gives no visible sign it worked, so an
+    // impatient shopper clicks again and ends up with a bigger quantity
+    // than they meant to add.
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1500);
+  }
 
   return (
     <div>
@@ -24,7 +35,10 @@ export function VariantSelector({
           <button
             key={v.id}
             disabled={v.stock === 0}
-            onClick={() => setSelected(v)}
+            onClick={() => {
+              setSelected(v);
+              setJustAdded(false);
+            }}
             aria-pressed={selected?.id === v.id}
             className={`border px-3 py-1 disabled:opacity-40 ${
               selected?.id === v.id
@@ -37,11 +51,11 @@ export function VariantSelector({
         ))}
       </div>
       <button
-        disabled={!selected}
-        onClick={() => selected && onAddToCart(selected)}
+        disabled={!selected || justAdded}
+        onClick={handleAddToCart}
         className="mt-4 rounded-full bg-brand-crimson px-6 py-2 text-white disabled:opacity-40"
       >
-        {t("addToCart")}
+        {justAdded ? t("added") : t("addToCart")}
       </button>
     </div>
   );
