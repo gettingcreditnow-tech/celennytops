@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeSubtotalCents, computeTotalCents, formatUsd, formatDop } from "@/lib/pricing";
+import { computeSubtotalCents, computeTotalCents, formatUsd, formatDop, dopToUsdCents } from "@/lib/pricing";
 
 describe("computeSubtotalCents", () => {
   it("sums unit price times quantity across lines", () => {
@@ -32,5 +32,17 @@ describe("formatDop", () => {
   it("converts USD cents to a rounded, thousands-separated peso amount", () => {
     expect(formatDop(1200)).toBe("720");
     expect(formatDop(50000)).toBe("30,000");
+  });
+});
+
+describe("dopToUsdCents", () => {
+  it("converts a peso amount back to USD cents, inverse of formatDop's math", () => {
+    expect(dopToUsdCents(720)).toBe(1200);
+    expect(dopToUsdCents(30000)).toBe(50000);
+  });
+
+  it("round-trips a plain peso price entered in the admin form", () => {
+    const enteredDop = 650;
+    expect(dopToUsdCents(enteredDop)).toBe(Math.round((650 / 60) * 100));
   });
 });

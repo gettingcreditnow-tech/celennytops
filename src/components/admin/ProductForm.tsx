@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import { usdCentsToDop, dopToUsdCents } from "@/lib/pricing";
 import type { Product, ProductVariant } from "@/lib/types";
 
 type VariantDraft = Pick<ProductVariant, "size" | "color" | "priceCents" | "sku" | "stock"> & {
@@ -167,8 +168,8 @@ export function ProductForm({
           <input placeholder="Color" value={v.color ?? ""} onChange={(e) => {
             const next = [...variants]; next[idx] = { ...v, color: e.target.value }; setVariants(next);
           }} />
-          <input placeholder="Precio (centavos)" type="number" value={v.priceCents} onChange={(e) => {
-            const next = [...variants]; next[idx] = { ...v, priceCents: Number(e.target.value) }; setVariants(next);
+          <input placeholder="Precio (RD$)" type="number" value={usdCentsToDop(v.priceCents)} onChange={(e) => {
+            const next = [...variants]; next[idx] = { ...v, priceCents: dopToUsdCents(Number(e.target.value)) }; setVariants(next);
           }} />
           <input placeholder="SKU" value={v.sku} onChange={(e) => {
             const next = [...variants]; next[idx] = { ...v, sku: e.target.value }; setVariants(next);

@@ -18,7 +18,16 @@ export function formatUsd(cents: number): string {
 // this must never feed back into any stored or charged amount.
 const USD_TO_DOP_RATE = 60;
 
+export function usdCentsToDop(usdCents: number): number {
+  return Math.round((usdCents / 100) * USD_TO_DOP_RATE);
+}
+
 export function formatDop(usdCents: number): string {
-  const dop = Math.round((usdCents / 100) * USD_TO_DOP_RATE);
-  return dop.toLocaleString("es-DO");
+  return usdCentsToDop(usdCents).toLocaleString("es-DO");
+}
+
+// Inverse of usdCentsToDop, used by the admin product form so prices can be
+// entered in RD$ (what a customer actually sees) instead of raw USD cents.
+export function dopToUsdCents(dop: number): number {
+  return Math.round((dop / USD_TO_DOP_RATE) * 100);
 }
