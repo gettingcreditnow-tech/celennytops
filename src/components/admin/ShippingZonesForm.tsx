@@ -7,12 +7,15 @@ import type { ShippingZone } from "@/lib/types";
 export function ShippingZonesForm({
   initialZones,
   initialFreeShippingMinQuantity,
+  initialShowFreeShippingBanner,
 }: {
   initialZones: ShippingZone[];
   initialFreeShippingMinQuantity: number;
+  initialShowFreeShippingBanner: boolean;
 }) {
   const [zones, setZones] = useState(initialZones);
   const [freeShippingMinQuantity, setFreeShippingMinQuantity] = useState(initialFreeShippingMinQuantity);
+  const [showFreeShippingBanner, setShowFreeShippingBanner] = useState(initialShowFreeShippingBanner);
   const [savingThreshold, setSavingThreshold] = useState(false);
   const [thresholdError, setThresholdError] = useState<string | null>(null);
 
@@ -30,7 +33,10 @@ export function ShippingZonesForm({
     const supabase = createBrowserSupabaseClient();
     const { data, error } = await supabase
       .from("store_settings")
-      .update({ free_shipping_min_quantity: freeShippingMinQuantity })
+      .update({
+        free_shipping_min_quantity: freeShippingMinQuantity,
+        show_free_shipping_banner: showFreeShippingBanner,
+      })
       .eq("id", true)
       .select();
     if (error) {
@@ -68,7 +74,7 @@ export function ShippingZonesForm({
         </div>
       ))}
 
-      <div className="mt-4 flex items-center gap-2 border-t pt-4">
+      <div className="mt-4 flex flex-col gap-2 border-t pt-4">
         <label>
           Minimo de articulos para envio gratis{" "}
           <input
@@ -78,7 +84,15 @@ export function ShippingZonesForm({
             onChange={(e) => setFreeShippingMinQuantity(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
           />
         </label>
-        <button onClick={saveFreeShippingThreshold} disabled={savingThreshold}>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={showFreeShippingBanner}
+            onChange={(e) => setShowFreeShippingBanner(e.target.checked)}
+          />
+          Mostrar aviso de envio gratis en la pagina principal
+        </label>
+        <button onClick={saveFreeShippingThreshold} disabled={savingThreshold} className="w-fit">
           {savingThreshold ? "Guardando..." : "Guardar"}
         </button>
       </div>

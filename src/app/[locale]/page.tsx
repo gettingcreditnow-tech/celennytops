@@ -17,10 +17,14 @@ function groupByCategory(products: ProductWithVariants[]): [string, ProductWithV
   return Array.from(groups.entries());
 }
 
-async function getFreeShippingMinQuantity(): Promise<number | null> {
+async function getFreeShippingBannerSettings(): Promise<{ minQuantity: number; enabled: boolean } | null> {
   const supabase = await createServerSupabaseClient();
-  const { data } = await supabase.from("store_settings").select("free_shipping_min_quantity").maybeSingle();
-  return data?.free_shipping_min_quantity ?? null;
+  const { data } = await supabase
+    .from("store_settings")
+    .select("free_shipping_min_quantity, show_free_shipping_banner")
+    .maybeSingle();
+  if (!data) return null;
+  return { minQuantity: data.free_shipping_min_quantity, enabled: data.show_free_shipping_banner };
 }
 
 export default async function HomePage({
@@ -29,20 +33,20 @@ export default async function HomePage({
   params: Promise<{ locale: "es" | "en" }>;
 }) {
   const { locale } = await params;
-  const [t, products, freeShippingMinQuantity] = await Promise.all([
+  const [t, products, freeShippingBanner] = await Promise.all([
     getTranslations("home"),
     listActiveProducts(),
-    getFreeShippingMinQuantity(),
+    getFreeShippingBannerSettings(),
   ]);
   const categories = groupByCategory(products);
 
   return (
     <main className="px-6 py-10">
       <h1 className="font-script text-center text-4xl">{t("tagline")}</h1>
-      {freeShippingMinQuantity !== null && (
+      {freeShippingBanner?.enabled && (
         <div className="mt-4 flex justify-center">
-          <p className="animate-fade-cycle rounded-full bg-brand-crimson px-6 py-2 text-center text-lg font-bold text-white shadow-md">
-            🚚 {t("freeShippingBanner", { count: freeShippingMinQuantity })}
+          <p className="rounded-full bg-brand-crimson px-6 py-2 text-center text-lg font-bold text-white shadow-md">
+            🚚 {t("freeShippingBanner", { count: freeShippingBanner.minQuantity })}
           </p>
         </div>
       )}

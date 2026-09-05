@@ -13,7 +13,8 @@
 3. Run the SQL in `supabase/migrations/` **in filename order**
    (`0001_init.sql`, `0002_admin_allowlist.sql`, `0003_storage_policies.sql`,
    `0004_santo_domingo_shipping.sql`, `0005_bank_transfer_payments.sql`,
-   `0006_remove_latinoamerica_zone.sql`, `0007_store_settings.sql`),
+   `0006_remove_latinoamerica_zone.sql`, `0007_store_settings.sql`,
+   `0008_free_shipping_banner_toggle.sql`),
    then `supabase/seed.sql`, against your Supabase project (SQL Editor).
    `0005` also creates the private `payment-proofs` Storage bucket itself
    (via SQL) — unlike `product-images` below, no manual bucket creation is

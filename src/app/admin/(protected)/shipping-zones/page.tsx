@@ -5,7 +5,7 @@ export default async function AdminShippingZonesPage() {
   const supabase = await createServerSupabaseClient();
   const [{ data }, { data: settings }] = await Promise.all([
     supabase.from("shipping_zones").select("*").order("sort_order"),
-    supabase.from("store_settings").select("free_shipping_min_quantity").maybeSingle(),
+    supabase.from("store_settings").select("free_shipping_min_quantity, show_free_shipping_banner").maybeSingle(),
   ]);
   const zones = (data ?? []).map((z) => ({
     id: z.id,
@@ -21,6 +21,7 @@ export default async function AdminShippingZonesPage() {
       // live checkout behavior, which falls back to no-free-shipping in
       // that case (see the create-order routes' own ?? Infinity fallback).
       initialFreeShippingMinQuantity={settings?.free_shipping_min_quantity ?? 2}
+      initialShowFreeShippingBanner={settings?.show_free_shipping_banner ?? true}
     />
   );
 }
