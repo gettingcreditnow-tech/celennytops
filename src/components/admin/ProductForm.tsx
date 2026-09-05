@@ -22,6 +22,7 @@ export function ProductForm({
   const [nameEn, setNameEn] = useState(initialProduct?.nameEn ?? "");
   const [descriptionEs, setDescriptionEs] = useState(initialProduct?.descriptionEs ?? "");
   const [descriptionEn, setDescriptionEn] = useState(initialProduct?.descriptionEn ?? "");
+  const [category, setCategory] = useState(initialProduct?.category ?? "");
   const [images, setImages] = useState<string[]>(initialProduct?.images ?? []);
   const [isActive, setIsActive] = useState(initialProduct?.isActive ?? true);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export function ProductForm({
       name_en: nameEn,
       description_es: descriptionEs,
       description_en: descriptionEn,
+      category,
       images,
       is_active: isActive,
     };
@@ -147,6 +149,10 @@ export function ProductForm({
       <label>Name (EN) <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} /></label>
       <label>Descripcion (ES) <textarea value={descriptionEs} onChange={(e) => setDescriptionEs(e.target.value)} /></label>
       <label>Description (EN) <textarea value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} /></label>
+      <label>
+        Catalogo (categoria)
+        <input placeholder="Ej. Calzado, Ropa" value={category} onChange={(e) => setCategory(e.target.value)} />
+      </label>
       <label>
         Activo
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
